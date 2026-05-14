@@ -4,22 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMC / ICT Trading Journal</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
         .tab-btn.active { background-color: #334155; color: white; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
         .tab-btn.active-blue { background-color: #2563eb; color: white; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
     </style>
@@ -27,7 +19,6 @@
 <body class="bg-slate-900 text-slate-200 font-sans p-4 md:p-8 min-h-screen">
 
     <div class="max-w-6xl mx-auto space-y-8">
-        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl">
             <div class="flex items-center gap-3">
                 <div class="bg-blue-600 p-2 rounded-lg text-white"><i data-lucide="trending-up"></i></div>
@@ -47,25 +38,12 @@
             </div>
         </div>
 
-        <!-- Dashboard View -->
         <div id="view-dashboard" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                    <div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Total PnL</div>
-                    <div id="stat-pnl" class="text-3xl font-bold text-white">$0.00</div>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                    <div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> Win Rate</div>
-                    <div id="stat-winrate" class="text-3xl font-bold text-blue-400">0.0%</div>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                    <div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Total Trades</div>
-                    <div id="stat-total" class="text-3xl font-bold text-white">0</div>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                    <div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="brain" class="w-4 h-4"></i> W / L</div>
-                    <div class="text-3xl font-bold text-white"><span id="stat-wins" class="text-emerald-400">0</span> / <span id="stat-losses" class="text-red-400">0</span></div>
-                </div>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Total PnL</div><div id="stat-pnl" class="text-3xl font-bold text-white">$0.00</div></div>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> Win Rate</div><div id="stat-winrate" class="text-3xl font-bold text-blue-400">0.0%</div></div>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Total Trades</div><div id="stat-total" class="text-3xl font-bold text-white">0</div></div>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="brain" class="w-4 h-4"></i> W / L</div><div class="text-3xl font-bold text-white"><span id="stat-wins" class="text-emerald-400">0</span> / <span id="stat-losses" class="text-red-400">0</span></div></div>
             </div>
             <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg h-96 relative">
                 <h3 class="text-lg font-semibold text-white mb-4">PnL History</h3>
@@ -73,7 +51,6 @@
             </div>
         </div>
 
-        <!-- Form View -->
         <form id="view-new" class="hidden bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-700 shadow-lg space-y-8">
             <div>
                 <h3 class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4 flex items-center gap-2"><i data-lucide="dollar-sign" class="w-5 h-5 text-blue-400"></i> Basic Information</h3>
@@ -114,17 +91,14 @@
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i> Save Trade Record</button>
         </form>
 
-        <!-- History View -->
         <div id="view-history" class="hidden space-y-6"><div id="history-container" class="space-y-6"></div><div id="history-empty" class="text-center text-slate-500 py-12 hidden">No trades recorded yet.</div></div>
     </div>
 
-    <!-- Script Logic with Firebase Config -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        // Your Firebase Configuration!
         const firebaseConfig = {
             apiKey: "AIzaSyBh3YW1J4iIjBaf44teLKSDpxk20nX425w",
             authDomain: "tradingjournal-58cad.firebaseapp.com",
@@ -140,12 +114,9 @@
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-        } catch (error) {
-            console.error("Firebase init error:", error);
-            alert("ไม่สามารถเชื่อมต่อฐานข้อมูลได้ ลองรีเฟรชใหม่อีกครั้งครับ");
-        }
+        } catch (error) { console.error("Firebase init error:", error); }
 
-        let currentUser = null, tradesData = [], currentImageUrl = '', myChart = null;
+        let tradesData = [], currentImageUrl = '', myChart = null;
         lucide.createIcons();
         document.getElementById('form-date').valueAsDate = new Date();
 
@@ -153,28 +124,27 @@
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-new').classList.add('hidden');
             document.getElementById('view-history').classList.add('hidden');
-            
             document.getElementById('btn-dashboard').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
             document.getElementById('btn-new').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
             document.getElementById('btn-history').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
-
             document.getElementById(`view-${tabName}`).classList.remove('hidden');
             document.getElementById(`btn-${tabName}`).classList.add(tabName === 'new' ? 'active-blue' : 'active');
             if(tabName === 'dashboard') updateDashboard();
         };
 
+        // --- แก้ไขตรงนี้: ไม่ต้องแยกห้องข้อมูลแล้ว ดึงจากห้อง 'trades' ส่วนกลางเลย ---
         if(auth) {
-            signInAnonymously(auth).catch(err => console.error("Auth:", err));
+            signInAnonymously(auth); // ล็อกอินเพื่อสิทธิ์ผ่าน Security Rules เฉยๆ
             onAuthStateChanged(auth, (user) => {
-                if (user) { currentUser = user; setupFirestoreListener(); } 
-                else currentUser = null;
+                if (user) { setupFirestoreListener(); } 
             });
         }
 
         let unsubscribeSnapshot = null;
         function setupFirestoreListener() {
-            if (!currentUser || !db) return;
-            const tradesRef = collection(db, 'users', currentUser.uid, 'trades');
+            if (!db) return;
+            // ใช้ collection รวมชื่อ 'trades' แทนที่จะแยกตาม user.uid
+            const tradesRef = collection(db, 'trades');
             if(unsubscribeSnapshot) unsubscribeSnapshot();
             unsubscribeSnapshot = onSnapshot(tradesRef, (snapshot) => {
                 const fetchedTrades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -189,7 +159,6 @@
             const container = document.getElementById('history-container');
             const emptyMsg = document.getElementById('history-empty');
             container.innerHTML = '';
-            
             if (tradesData.length === 0) { emptyMsg.classList.remove('hidden'); return; } 
             else emptyMsg.classList.add('hidden');
 
@@ -197,7 +166,7 @@
                 const isPositivePnL = Number(trade.pnl) >= 0;
                 const card = document.createElement('div');
                 card.className = "bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row gap-6";
-                let cardHTML = `<div class="flex-1 space-y-4"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">${trade.asset}</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div><div class="flex items-center gap-4"><span class="font-bold text-lg ${isPositivePnL ? 'text-emerald-400' : 'text-red-400'}">${isPositivePnL ? '+' : ''}$${trade.pnl}</span><span class="px-3 py-1 rounded text-sm font-bold ${trade.result === 'Win' ? 'bg-emerald-500/20 text-emerald-400' : trade.result === 'Lose' ? 'bg-red-500/20 text-red-400' : 'bg-slate-700 text-slate-300'}">${trade.result}</span><button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1" title="Delete Trade"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"><div><span class="text-slate-500">Entry:</span> <span class="text-slate-200">${trade.entry}</span></div><div><span class="text-slate-500">Exit:</span> <span class="text-slate-200">${trade.exit}</span></div><div><span class="text-slate-500">Session:</span> <span class="text-slate-200">${trade.session}</span></div><div><span class="text-slate-500">Bias:</span> <span class="text-slate-200">${trade.bias}</span></div><div><span class="text-slate-500">Pips:</span> <span class="text-slate-200">${trade.pips}</span></div><div><span class="text-slate-500">R:R:</span> <span class="text-slate-200">${trade.rr || '-'}</span></div><div><span class="text-slate-500">Emotion:</span> <span class="text-slate-200">${trade.emotion}</span></div><div><span class="text-slate-500">News:</span> <span class="text-slate-200">${trade.news ? 'Yes' : 'No'}</span></div></div>`;
+                let cardHTML = `<div class="flex-1 space-y-4"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">${trade.asset}</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div><div class="flex items-center gap-4"><span class="font-bold text-lg ${isPositivePnL ? 'text-emerald-400' : 'text-red-400'}">${isPositivePnL ? '+' : ''}$${trade.pnl}</span><span class="px-3 py-1 rounded text-sm font-bold ${trade.result === 'Win' ? 'bg-emerald-500/20 text-emerald-400' : trade.result === 'Lose' ? 'bg-red-500/20 text-red-400' : 'bg-slate-700 text-slate-300'}">${trade.result}</span><button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"><div><span class="text-slate-500">Entry:</span> <span class="text-slate-200">${trade.entry}</span></div><div><span class="text-slate-500">Exit:</span> <span class="text-slate-200">${trade.exit}</span></div><div><span class="text-slate-500">Session:</span> <span class="text-slate-200">${trade.session}</span></div><div><span class="text-slate-500">Bias:</span> <span class="text-slate-200">${trade.bias}</span></div><div><span class="text-slate-500">Pips:</span> <span class="text-slate-200">${trade.pips}</span></div><div><span class="text-slate-500">R:R:</span> <span class="text-slate-200">${trade.rr || '-'}</span></div><div><span class="text-slate-500">Emotion:</span> <span class="text-slate-200">${trade.emotion}</span></div><div><span class="text-slate-500">News:</span> <span class="text-slate-200">${trade.news ? 'Yes' : 'No'}</span></div></div>`;
                 if (trade.checklist || trade.comment) { cardHTML += `<div class="bg-slate-900/50 p-4 rounded-lg space-y-2 text-sm mt-4">`; if(trade.checklist) cardHTML += `<p><span class="text-slate-400 font-semibold">Checklist:</span> <span class="text-slate-300">${trade.checklist}</span></p>`; if(trade.comment) cardHTML += `<p><span class="text-slate-400 font-semibold">Comment:</span> <span class="text-slate-300">${trade.comment}</span></p>`; cardHTML += `</div>`; }
                 cardHTML += `</div>`;
                 if (trade.imageUrl) cardHTML += `<div class="w-full md:w-64 h-48 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 flex-shrink-0"><img src="${trade.imageUrl}" alt="Trade setup" class="w-full h-full object-cover cursor-pointer" onclick="window.open('${trade.imageUrl}', '_blank')" /></div>`;
@@ -207,8 +176,9 @@
         }
 
         window.deleteTrade = async function(tradeId) {
-            if (!currentUser || !db) return;
-            if(confirm("Are you sure you want to delete this trade?")) await deleteDoc(doc(db, 'users', currentUser.uid, 'trades', tradeId));
+            if (!db) return;
+            // ลบจากห้องรวม
+            if(confirm("Are you sure you want to delete this trade?")) await deleteDoc(doc(db, 'trades', tradeId));
         };
 
         function updateDashboard() {
@@ -262,12 +232,13 @@
 
         document.getElementById('view-new').addEventListener('submit', async function(e) {
             e.preventDefault();
-            if (!currentUser || !db) return alert("กำลังเชื่อมต่อฐานข้อมูล กรุณารอสักครู่แล้วกดใหม่ครับ");
+            if (!db) return alert("กำลังเชื่อมต่อฐานข้อมูล กรุณารอสักครู่แล้วกดใหม่ครับ");
             const newTrade = { date: document.getElementById('form-date').value, asset: document.getElementById('form-asset').value.toUpperCase(), type: document.getElementById('form-type').value, result: document.getElementById('form-result').value, pnl: Number(document.getElementById('form-pnl').value), pips: Number(document.getElementById('form-pips').value), rr: Number(document.getElementById('form-rr').value || 0), session: document.getElementById('form-session').value, bias: document.getElementById('form-bias').value, entry: document.getElementById('form-entry').value, exit: document.getElementById('form-exit').value, setup: document.getElementById('form-setup').value, news: document.getElementById('form-news').checked, emotion: document.getElementById('form-emotion').value, checklist: document.getElementById('form-checklist').value, comment: document.getElementById('form-comment').value, imageUrl: currentImageUrl, timestamp: Date.now() };
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML; submitBtn.innerHTML = "Saving..."; submitBtn.disabled = true;
             try {
-                await addDoc(collection(db, 'users', currentUser.uid, 'trades'), newTrade);
+                // บันทึกเข้าห้องรวม
+                await addDoc(collection(db, 'trades'), newTrade);
                 document.getElementById('form-asset').value = ''; document.getElementById('form-pnl').value = ''; document.getElementById('form-pips').value = ''; document.getElementById('form-rr').value = ''; document.getElementById('form-setup').value = ''; document.getElementById('form-checklist').value = ''; document.getElementById('form-comment').value = ''; document.getElementById('form-image').value = ''; document.getElementById('image-status').classList.add('hidden'); currentImageUrl = '';
                 switchTab('history');
             } catch (error) { console.error(error); alert("เกิดข้อผิดพลาดในการบันทึก"); } finally { submitBtn.innerHTML = originalText; submitBtn.disabled = false; }
