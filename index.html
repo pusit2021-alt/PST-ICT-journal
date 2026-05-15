@@ -35,48 +35,40 @@
                     <button onclick="switchTab('new')" id="btn-new" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="plus-circle" class="w-4 h-4"></i> New Trade</button>
                     <button onclick="switchTab('history')" id="btn-history" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="history" class="w-4 h-4"></i> History</button>
                 </div>
-                <button onclick="exportToCSV()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-all shadow" title="Export to Excel/CSV"><i data-lucide="download" class="w-4 h-4"></i> Export</button>
+                <button onclick="exportToCSV()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-all shadow"><i data-lucide="download" class="w-4 h-4"></i> Export</button>
             </div>
         </div>
 
         <!-- Dashboard View -->
         <div id="view-dashboard" class="space-y-6">
-            <!-- Stats Top Row -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Total PnL</div><div id="stat-pnl" class="text-3xl font-bold text-white">$0.00</div></div>
                 <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> Win Rate</div><div id="stat-winrate" class="text-3xl font-bold text-blue-400">0.0%</div></div>
                 <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Total Trades</div><div id="stat-total" class="text-3xl font-bold text-white">0</div></div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="brain" class="w-4 h-4"></i> W / L / BE</div>
-                    <div class="text-2xl font-bold text-white mt-1">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="brain" class="w-4 h-4"></i> W / L / BE / Missed</div>
+                    <div class="text-xl md:text-2xl font-bold text-white mt-1">
                         <span id="stat-wins" class="text-emerald-400" title="Win">0</span> <span class="text-slate-600">|</span> 
                         <span id="stat-losses" class="text-red-400" title="Lose">0</span> <span class="text-slate-600">|</span> 
-                        <span id="stat-be" class="text-slate-400" title="Break Even">0</span>
+                        <span id="stat-be" class="text-slate-400" title="Break Even">0</span> <span class="text-slate-600">|</span> 
+                        <span id="stat-missed" class="text-amber-400" title="Missed">0</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Dashboard Grid: Calendar & Chart -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Performance Calendar -->
                 <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg col-span-1 md:col-span-1">
                     <h3 class="text-lg font-semibold text-white mb-4 flex justify-between items-center">
                         <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-blue-400"></i> Calendar</span>
                         <span id="calendar-month" class="text-sm font-medium text-slate-400 uppercase tracking-wide"></span>
                     </h3>
-                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-500 mb-2 uppercase">
-                        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
-                    </div>
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2">
-                        <!-- Calendar Days will be injected here -->
-                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-500 mb-2 uppercase"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2"></div>
                     <div class="mt-4 flex justify-between text-[10px] text-slate-500">
                         <span class="flex items-center gap-1"><div class="w-2 h-2 rounded bg-emerald-500/50"></div> Profit</span>
                         <span class="flex items-center gap-1"><div class="w-2 h-2 rounded bg-slate-500/50"></div> BE</span>
                         <span class="flex items-center gap-1"><div class="w-2 h-2 rounded bg-red-500/50"></div> Loss</span>
                     </div>
                 </div>
-                
-                <!-- PnL Chart -->
                 <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg col-span-1 md:col-span-2 h-80 relative">
                     <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-blue-400"></i> PnL History</h3>
                     <div class="absolute inset-0 top-16 bottom-6 left-6 right-6"><canvas id="pnlChart"></canvas></div>
@@ -91,9 +83,16 @@
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div><label class="block text-sm font-medium text-slate-400 mb-1">Date</label><input type="date" id="form-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none" /></div>
                     <div><label class="block text-sm font-medium text-slate-400 mb-1">Position</label><select id="form-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none"><option value="Long">Long (Buy)</option><option value="Short">Short (Sell)</option></select></div>
-                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Result</label><select id="form-result" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none"><option value="Win">Win</option><option value="Lose">Lose</option><option value="BE">Break Even (BE)</option></select></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Result</label>
+                        <select id="form-result" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
+                            <option value="Win">Win</option>
+                            <option value="Lose">Lose</option>
+                            <option value="BE">Break Even (BE)</option>
+                            <option value="Missed">Missed (Setup Validation)</option>
+                        </select>
+                    </div>
                     <div><label class="block text-sm font-medium text-slate-400 mb-1">PnL ($)</label><input type="number" step="0.01" id="form-pnl" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none" /></div>
-                    <div><label class="block text-sm font-medium text-slate-400 mb-1">R:R Ratio</label><input type="number" step="0.1" id="form-rr" placeholder="e.g. 2.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none" /></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Target R:R</label><input type="number" step="0.1" id="form-rr" placeholder="e.g. 2.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none" /></div>
                 </div>
             </div>
             <div>
@@ -109,7 +108,6 @@
             <div>
                 <h3 class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4 flex items-center gap-2"><i data-lucide="brain" class="w-5 h-5 text-pink-400"></i> Context & Evaluation</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Checkboxes & Toggles -->
                     <div class="space-y-5">
                         <div class="flex items-center justify-between bg-slate-900/80 p-3.5 rounded-lg border border-slate-700">
                             <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> <span class="text-sm font-medium text-slate-300">Followed Trading Plan?</span></div>
@@ -138,18 +136,17 @@
                         </div>
                     </div>
                     
-                    <!-- Texts & Selects -->
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">Mistakes / Errors</label>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">Mistakes / Status</label>
                                 <select id="form-mistake" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
                                     <option value="None">None (Perfect)</option>
+                                    <option value="Missed Entry (Busy)">Missed Entry (Busy)</option>
                                     <option value="Early Entry">Early Entry</option>
                                     <option value="Late Entry">Late Entry</option>
                                     <option value="FOMO">FOMO</option>
                                     <option value="Moved SL">Moved SL</option>
                                     <option value="Overleverage">Overleverage</option>
-                                    <option value="Revenge Trade">Revenge Trade</option>
                                 </select>
                             </div>
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">Emotion</label>
@@ -159,6 +156,7 @@
                                     <option value="Anxious">Anxious</option>
                                     <option value="Greedy">Greedy</option>
                                     <option value="Tired">Tired</option>
+                                    <option value="Not at screen">Not at screen</option>
                                 </select>
                             </div>
                         </div>
@@ -172,7 +170,6 @@
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i> Save Trade Record</button>
         </form>
 
-        <!-- History View -->
         <div id="view-history" class="hidden space-y-6"><div id="history-container" class="space-y-6"></div><div id="history-empty" class="text-center text-slate-500 py-12 hidden">No trades recorded yet.</div></div>
     </div>
 
@@ -247,26 +244,24 @@
                 const isWin = trade.result === 'Win';
                 const isLose = trade.result === 'Lose';
                 const isBE = trade.result === 'BE';
+                const isMissed = trade.result === 'Missed';
+                
+                const barColor = isWin ? 'bg-emerald-500' : isLose ? 'bg-red-500' : isBE ? 'bg-slate-500' : 'bg-amber-500';
                 
                 const card = document.createElement('div');
                 card.className = "bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row gap-6 relative overflow-hidden";
                 
-                // Add tiny color indicator line on the left
-                const barColor = isWin ? 'bg-emerald-500' : isLose ? 'bg-red-500' : 'bg-slate-500';
-                
                 let cardHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 ${barColor}"></div>`;
                 
-                cardHTML += `<div class="flex-1 space-y-4 pl-2"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">Trade Setup</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div><div class="flex items-center gap-4"><span class="font-bold text-lg ${isPositivePnL ? 'text-emerald-400' : Number(trade.pnl) < 0 ? 'text-red-400' : 'text-slate-300'}">${isPositivePnL ? '+' : ''}$${trade.pnl}</span><span class="px-3 py-1 rounded text-sm font-bold ${isWin ? 'bg-emerald-500/20 text-emerald-400' : isLose ? 'bg-red-500/20 text-red-400' : 'bg-slate-600/50 text-slate-300'}">${trade.result}</span><button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
+                cardHTML += `<div class="flex-1 space-y-4 pl-2"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">Trade Setup</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div><div class="flex items-center gap-4"><span class="font-bold text-lg ${isPositivePnL ? 'text-emerald-400' : Number(trade.pnl) < 0 ? 'text-red-400' : 'text-slate-300'}">${isMissed ? '' : (isPositivePnL ? '+' : '')}$${trade.pnl}</span><span class="px-3 py-1 rounded text-sm font-bold ${isWin ? 'bg-emerald-500/20 text-emerald-400' : isLose ? 'bg-red-500/20 text-red-400' : isBE ? 'bg-slate-600/50 text-slate-300' : 'bg-amber-500/20 text-amber-400'}">${trade.result}</span><button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
                 
-                cardHTML += `<div class="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4 text-sm"><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Entry</span> <span class="text-slate-200 font-medium">${trade.entry}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Exit</span> <span class="text-slate-200 font-medium">${trade.exit}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Session</span> <span class="text-slate-200 font-medium">${trade.session}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Bias</span> <span class="text-slate-200 font-medium">${trade.bias}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Plan Followed?</span> <span class="${trade.followedPlan ? 'text-emerald-400' : 'text-red-400'} font-medium">${trade.followedPlan ? 'Yes' : 'No'}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Mistake</span> <span class="text-slate-200 font-medium">${trade.mistake || 'None'}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Emotion</span> <span class="text-slate-200 font-medium">${trade.emotion}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">R:R</span> <span class="text-slate-200 font-medium">${trade.rr || '-'}</span></div></div>`;
+                cardHTML += `<div class="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4 text-sm"><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Entry</span> <span class="text-slate-200 font-medium">${trade.entry}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Exit</span> <span class="text-slate-200 font-medium">${trade.exit}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Session</span> <span class="text-slate-200 font-medium">${trade.session}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Bias</span> <span class="text-slate-200 font-medium">${trade.bias}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Plan Followed?</span> <span class="${trade.followedPlan ? 'text-emerald-400' : 'text-red-400'} font-medium">${trade.followedPlan ? 'Yes' : 'No'}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Mistake/Status</span> <span class="text-slate-200 font-medium">${trade.mistake || 'None'}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Emotion</span> <span class="text-slate-200 font-medium">${trade.emotion}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Target R:R</span> <span class="text-slate-200 font-medium">${trade.rr || '-'}</span></div></div>`;
                 
                 if ((trade.checklist && trade.checklist.length > 0) || trade.comment) { 
                     cardHTML += `<div class="bg-slate-900/50 p-4 rounded-lg space-y-3 text-sm mt-4 border border-slate-700/50">`; 
                     if(trade.checklist && trade.checklist.length > 0) {
                         cardHTML += `<div><span class="text-slate-400 font-semibold block mb-1">Checklist Verified:</span> <div class="flex flex-wrap gap-2">`;
-                        trade.checklist.forEach(item => {
-                            cardHTML += `<span class="bg-blue-900/30 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded text-xs">${item}</span>`;
-                        });
+                        trade.checklist.forEach(item => { cardHTML += `<span class="bg-blue-900/30 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded text-xs">${item}</span>`; });
                         cardHTML += `</div></div>`;
                     }
                     if(trade.comment) cardHTML += `<div><span class="text-slate-400 font-semibold block mb-1">Comment:</span> <span class="text-slate-300">${trade.comment}</span></div>`; 
@@ -290,9 +285,10 @@
             const wins = tradesData.filter(t => t.result === 'Win').length;
             const losses = tradesData.filter(t => t.result === 'Lose').length;
             const bes = tradesData.filter(t => t.result === 'BE').length;
+            const missed = tradesData.filter(t => t.result === 'Missed').length;
             
-            // Recalculate win rate (excluding BE from total if preferred, but usually it's just Win/Total)
-            const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(1) : 0;
+            const effectiveTrades = wins + losses;
+            const winRate = effectiveTrades > 0 ? ((wins / effectiveTrades) * 100).toFixed(1) : 0;
             const totalPnl = tradesData.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
             
             const pnlEl = document.getElementById('stat-pnl');
@@ -304,6 +300,7 @@
             document.getElementById('stat-wins').innerText = wins;
             document.getElementById('stat-losses').innerText = losses;
             document.getElementById('stat-be').innerText = bes;
+            document.getElementById('stat-missed').innerText = missed;
             
             updateChart();
             renderCalendar();
@@ -312,61 +309,47 @@
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
-            
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = today.getMonth();
-            
-            // Set Month Title
+            const today = new Date(); const year = today.getFullYear(); const month = today.getMonth();
             const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             document.getElementById('calendar-month').innerText = `${monthNames[month]} ${year}`;
 
-            const firstDay = new Date(year, month, 1).getDay(); // 0(Sun) to 6(Sat)
+            const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // Empty slots for days before the 1st
             for(let i = 0; i < firstDay; i++) {
                 const empty = document.createElement('div');
                 empty.className = "h-8 md:h-10 rounded border border-transparent";
                 grid.appendChild(empty);
             }
 
-            // Days of the month
             for(let day = 1; day <= daysInMonth; day++) {
-                const m = String(month+1).padStart(2, '0');
-                const d = String(day).padStart(2, '0');
+                const m = String(month+1).padStart(2, '0'); const d = String(day).padStart(2, '0');
                 const dateStr = `${year}-${m}-${d}`;
-
-                // Aggregate PnL for this day
                 const dayTrades = tradesData.filter(t => t.date === dateStr);
-                let dayPnl = 0;
-                let hasTrades = false;
-
+                
+                let dayPnl = 0; let hasTrades = false;
+                
                 if(dayTrades.length > 0) {
                     hasTrades = true;
                     dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
                 }
 
                 const daySquare = document.createElement('div');
-                let colorClass = "bg-slate-900 border-slate-800 text-slate-600 hover:border-slate-600"; // default
+                let colorClass = "bg-slate-900 border-slate-800 text-slate-600 hover:border-slate-600"; 
 
                 if(hasTrades) {
-                    if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
+                    const onlyMissed = dayTrades.every(t => t.result === 'Missed');
+                    if(onlyMissed) colorClass = "bg-amber-500/20 border-amber-500/50 text-amber-400";
+                    else if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
                     else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
-                    else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; // BE
+                    else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
                 }
 
-                // Highlight today
-                const isToday = (day === today.getDate());
-                if(isToday && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
+                if(day === today.getDate() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
 
                 daySquare.className = `h-8 md:h-10 flex items-center justify-center rounded border transition-colors cursor-default ${colorClass}`;
                 daySquare.innerHTML = `<span class="text-xs md:text-sm font-semibold">${day}</span>`;
-                
-                if(hasTrades) {
-                    daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)}`;
-                }
-
+                if(hasTrades) daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)}`;
                 grid.appendChild(daySquare);
             }
         }
@@ -376,29 +359,15 @@
             const chartDataArray = [...tradesData].reverse();
             const labels = chartDataArray.map((t, idx) => `Trade ${idx+1}`);
             const pnlData = chartDataArray.map(t => Number(t.pnl || 0));
-            const backgroundColors = pnlData.map(val => val > 0 ? '#10b981' : val < 0 ? '#ef4444' : '#64748b');
+            const backgroundColors = chartDataArray.map(t => t.result === 'Missed' ? '#f59e0b' : t.pnl > 0 ? '#10b981' : t.pnl < 0 ? '#ef4444' : '#64748b');
             
             if (myChart) myChart.destroy();
             Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif';
-            
-            myChart = new Chart(ctx, { 
-                type: 'bar', 
-                data: { labels: labels, datasets: [{ label: 'PnL ($)', data: pnlData, backgroundColor: backgroundColors, borderRadius: 3 }] }, 
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1 } }, 
-                    scales: { 
-                        y: { grid: { color: '#334155', borderDash: [3, 3] }, ticks: { callback: function(value) { return '$' + value; } } }, 
-                        x: { grid: { display: false }, ticks: { display: false } } 
-                    } 
-                } 
-            });
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'PnL ($)', data: pnlData, backgroundColor: backgroundColors, borderRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1 } }, scales: { y: { grid: { color: '#334155', borderDash: [3, 3] }, ticks: { callback: function(value) { return '$' + value; } } }, x: { grid: { display: false }, ticks: { display: false } } } } });
         }
 
         document.getElementById('form-image').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const statusText = document.getElementById('image-status');
+            const file = e.target.files[0]; const statusText = document.getElementById('image-status');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
@@ -422,7 +391,6 @@
             e.preventDefault();
             if (!db) return alert("กำลังเชื่อมต่อฐานข้อมูล กรุณารอสักครู่แล้วกดใหม่ครับ");
             
-            // Gather Checklist values
             const checklistCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]:checked');
             const selectedChecklist = Array.from(checklistCheckboxes).map(cb => cb.value);
 
@@ -451,22 +419,9 @@
             const originalText = submitBtn.innerHTML; submitBtn.innerHTML = "Saving..."; submitBtn.disabled = true;
             try {
                 await addDoc(collection(db, 'trades'), newTrade);
-                
-                // Reset form fields
-                document.getElementById('form-pnl').value = ''; 
-                document.getElementById('form-rr').value = ''; 
-                document.getElementById('form-setup').value = ''; 
-                document.getElementById('form-comment').value = ''; 
-                document.getElementById('form-image').value = ''; 
-                document.getElementById('image-status').classList.add('hidden'); 
-                document.getElementById('form-followed-plan').checked = true; // reset to default Good
-                document.getElementById('form-mistake').value = 'None'; // reset
-                currentImageUrl = '';
-                
-                // Reset checkboxes
+                document.getElementById('form-pnl').value = ''; document.getElementById('form-rr').value = ''; document.getElementById('form-setup').value = ''; document.getElementById('form-comment').value = ''; document.getElementById('form-image').value = ''; document.getElementById('image-status').classList.add('hidden'); document.getElementById('form-followed-plan').checked = true; document.getElementById('form-mistake').value = 'None'; currentImageUrl = '';
                 const allCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]');
                 allCheckboxes.forEach(cb => cb.checked = false);
-
                 switchTab('history');
             } catch (error) { console.error(error); alert("เกิดข้อผิดพลาดในการบันทึก"); } finally { submitBtn.innerHTML = originalText; submitBtn.disabled = false; }
         });
@@ -477,12 +432,7 @@
             const csvRows = [headers.join(',')];
             tradesData.forEach(t => {
                 const checklistStr = t.checklist ? t.checklist.join(' | ') : '';
-                const values = [
-                    t.date, t.type, t.result, t.pnl, t.rr, t.session, t.bias, 
-                    `"${t.setup || ''}"`, t.entry, t.exit, 
-                    t.followedPlan ? 'Yes' : 'No', t.news ? 'Yes' : 'No', t.mistake || 'None', 
-                    t.emotion, `"${checklistStr}"`, `"${(t.comment || '').replace(/"/g, '""')}"`
-                ];
+                const values = [ t.date, t.type, t.result, t.pnl, t.rr, t.session, t.bias, `"${t.setup || ''}"`, t.entry, t.exit, t.followedPlan ? 'Yes' : 'No', t.news ? 'Yes' : 'No', t.mistake || 'None', t.emotion, `"${checklistStr}"`, `"${(t.comment || '').replace(/"/g, '""')}"` ];
                 csvRows.push(values.join(','));
             });
             const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
