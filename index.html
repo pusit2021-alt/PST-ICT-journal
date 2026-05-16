@@ -55,21 +55,21 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg col-span-1 md:col-span-1">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg col-span-1 lg:col-span-1">
                     <h3 class="text-lg font-semibold text-white mb-4 flex justify-between items-center">
-                        <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-blue-400"></i> Calendar</span>
+                        <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-blue-400"></i> Calendar Details</span>
                         <span id="calendar-month" class="text-sm font-medium text-slate-400 uppercase tracking-wide"></span>
                     </h3>
-                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-500 mb-2 uppercase"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2"></div>
-                    <div class="mt-4 flex justify-between text-[10px] text-slate-500">
+                    <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-slate-500 mb-2 uppercase"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-2"></div>
+                    <div class="mt-4 flex justify-between text-[10px] text-slate-500 border-t border-slate-700 pt-3">
                         <span class="flex items-center gap-1"><div class="w-2 h-2 rounded bg-emerald-500/50"></div> Profit</span>
                         <span class="flex items-center gap-1"><div class="w-2 h-2 rounded bg-slate-500/50"></div> BE</span>
                         <span class="flex items-center gap-1"><div class="w-2 h-2 rounded bg-red-500/50"></div> Loss</span>
                     </div>
                 </div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg col-span-1 md:col-span-2 h-80 relative">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg col-span-1 lg:col-span-2 min-h-[350px] relative">
                     <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-blue-400"></i> PnL History</h3>
                     <div class="absolute inset-0 top-16 bottom-6 left-6 right-6"><canvas id="pnlChart"></canvas></div>
                 </div>
@@ -77,22 +77,22 @@
         </div>
 
         <!-- Form View -->
-        <form id="view-new" class="hidden bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-700 shadow-lg space-y-8">
+        <form id="view-new" class="hidden bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-700 shadow-lg space-y-8 relative">
             <div>
-                <h3 class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4 flex items-center gap-2"><i data-lucide="dollar-sign" class="w-5 h-5 text-blue-400"></i> Basic Information</h3>
+                <h3 id="form-title" class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4 flex items-center gap-2"><i data-lucide="dollar-sign" class="w-5 h-5 text-blue-400"></i> Basic Information</h3>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Date</label><input type="date" id="form-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none" /></div>
-                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Position</label><select id="form-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none"><option value="Long">Long (Buy)</option><option value="Short">Short (Sell)</option></select></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Date</label><input type="date" id="form-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Position</label><select id="form-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500"><option value="Long">Long (Buy)</option><option value="Short">Short (Sell)</option></select></div>
                     <div><label class="block text-sm font-medium text-slate-400 mb-1">Result</label>
-                        <select id="form-result" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
+                        <select id="form-result" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="Win">Win</option>
                             <option value="Lose">Lose</option>
                             <option value="BE">Break Even (BE)</option>
                             <option value="Missed">Missed (Setup Validation)</option>
                         </select>
                     </div>
-                    <div><label class="block text-sm font-medium text-slate-400 mb-1">PnL ($)</label><input type="number" step="0.01" id="form-pnl" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none" /></div>
-                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Target R:R</label><input type="number" step="0.1" id="form-rr" placeholder="e.g. 2.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none" /></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">PnL ($)</label><input type="number" step="0.01" id="form-pnl" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Target R:R</label><input type="number" step="0.1" id="form-rr" placeholder="e.g. 2.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500" /></div>
                 </div>
             </div>
             <div>
@@ -167,7 +167,12 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i> Save Trade Record</button>
+            
+            <!-- Buttons -->
+            <div class="flex gap-4">
+                <button type="button" id="btn-cancel-edit" onclick="cancelEdit()" class="hidden w-1/3 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"><i data-lucide="x" class="w-5 h-5"></i> Cancel</button>
+                <button type="submit" id="btn-submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5"></i> Save Trade Record</button>
+            </div>
         </form>
 
         <div id="view-history" class="hidden space-y-6"><div id="history-container" class="space-y-6"></div><div id="history-empty" class="text-center text-slate-500 py-12 hidden">No trades recorded yet.</div></div>
@@ -176,7 +181,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyBh3YW1J4iIjBaf44teLKSDpxk20nX425w",
@@ -196,6 +201,8 @@
         } catch (error) { console.error("Firebase init error:", error); }
 
         let tradesData = [], currentImageUrl = '', myChart = null;
+        let editingTradeId = null; // Variable to track edit mode
+        
         lucide.createIcons();
         document.getElementById('form-date').valueAsDate = new Date();
 
@@ -208,7 +215,9 @@
             document.getElementById('btn-history').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
             document.getElementById(`view-${tabName}`).classList.remove('hidden');
             document.getElementById(`btn-${tabName}`).classList.add(tabName === 'new' ? 'active-blue' : 'active');
+            
             if(tabName === 'dashboard') updateDashboard();
+            if(tabName !== 'new' && editingTradeId !== null) cancelEdit(); // Cancel edit if navigating away
         };
 
         if(auth) {
@@ -249,11 +258,20 @@
                 const barColor = isWin ? 'bg-emerald-500' : isLose ? 'bg-red-500' : isBE ? 'bg-slate-500' : 'bg-amber-500';
                 
                 const card = document.createElement('div');
-                card.className = "bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row gap-6 relative overflow-hidden";
+                card.className = "bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row gap-6 relative overflow-hidden group";
                 
                 let cardHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 ${barColor}"></div>`;
                 
-                cardHTML += `<div class="flex-1 space-y-4 pl-2"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">Trade Setup</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div><div class="flex items-center gap-4"><span class="font-bold text-lg ${isPositivePnL ? 'text-emerald-400' : Number(trade.pnl) < 0 ? 'text-red-400' : 'text-slate-300'}">${isMissed ? '' : (isPositivePnL ? '+' : '')}$${trade.pnl}</span><span class="px-3 py-1 rounded text-sm font-bold ${isWin ? 'bg-emerald-500/20 text-emerald-400' : isLose ? 'bg-red-500/20 text-red-400' : isBE ? 'bg-slate-600/50 text-slate-300' : 'bg-amber-500/20 text-amber-400'}">${trade.result}</span><button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
+                // Action Buttons (Edit / Delete)
+                cardHTML += `<div class="flex-1 space-y-4 pl-2"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">Trade Setup</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div>
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-lg mr-2 ${isPositivePnL ? 'text-emerald-400' : Number(trade.pnl) < 0 ? 'text-red-400' : 'text-slate-300'}">${isMissed ? '' : (isPositivePnL ? '+' : '')}$${trade.pnl}</span>
+                    <span class="px-3 py-1 rounded text-sm font-bold ${isWin ? 'bg-emerald-500/20 text-emerald-400' : isLose ? 'bg-red-500/20 text-red-400' : isBE ? 'bg-slate-600/50 text-slate-300' : 'bg-amber-500/20 text-amber-400'}">${trade.result}</span>
+                    <div class="flex border-l border-slate-700 pl-3 ml-1 gap-1">
+                        <button onclick="editTrade('${trade.id}')" class="text-slate-500 hover:text-blue-400 transition-colors p-1" title="Edit"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1" title="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div></div>`;
                 
                 cardHTML += `<div class="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4 text-sm"><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Entry</span> <span class="text-slate-200 font-medium">${trade.entry}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Exit</span> <span class="text-slate-200 font-medium">${trade.exit}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Session</span> <span class="text-slate-200 font-medium">${trade.session}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Bias</span> <span class="text-slate-200 font-medium">${trade.bias}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Plan Followed?</span> <span class="${trade.followedPlan ? 'text-emerald-400' : 'text-red-400'} font-medium">${trade.followedPlan ? 'Yes' : 'No'}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Mistake/Status</span> <span class="text-slate-200 font-medium">${trade.mistake || 'None'}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Emotion</span> <span class="text-slate-200 font-medium">${trade.emotion}</span></div><div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Target R:R</span> <span class="text-slate-200 font-medium">${trade.rr || '-'}</span></div></div>`;
                 
@@ -272,6 +290,85 @@
                 if (trade.imageUrl) cardHTML += `<div class="w-full md:w-64 h-48 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 flex-shrink-0"><img src="${trade.imageUrl}" alt="Trade setup" class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${trade.imageUrl}', '_blank')" /></div>`;
                 card.innerHTML = cardHTML; container.appendChild(card);
             });
+            lucide.createIcons();
+        }
+
+        // --- Edit Feature Functions ---
+        window.editTrade = function(tradeId) {
+            const trade = tradesData.find(t => t.id === tradeId);
+            if(!trade) return;
+            
+            editingTradeId = tradeId; // Set active edit state
+
+            // Populate form fields
+            document.getElementById('form-date').value = trade.date || '';
+            document.getElementById('form-type').value = trade.type || 'Long';
+            document.getElementById('form-result').value = trade.result || 'Win';
+            document.getElementById('form-pnl').value = trade.pnl || '';
+            document.getElementById('form-rr').value = trade.rr || '';
+            document.getElementById('form-session').value = trade.session || 'New York';
+            document.getElementById('form-bias').value = trade.bias || 'Bullish';
+            document.getElementById('form-entry').value = trade.entry || 'iFVG';
+            document.getElementById('form-exit').value = trade.exit || 'ERL';
+            document.getElementById('form-setup').value = trade.setup || '';
+            document.getElementById('form-followed-plan').checked = trade.followedPlan ?? true;
+            document.getElementById('form-news').checked = trade.news ?? false;
+            document.getElementById('form-mistake').value = trade.mistake || 'None';
+            document.getElementById('form-emotion').value = trade.emotion || 'Calm';
+            document.getElementById('form-comment').value = trade.comment || '';
+
+            // Populate checkboxes
+            const allCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]');
+            allCheckboxes.forEach(cb => { cb.checked = trade.checklist && trade.checklist.includes(cb.value); });
+
+            // Handle Image preview state
+            currentImageUrl = trade.imageUrl || '';
+            const statusText = document.getElementById('image-status');
+            if(currentImageUrl) {
+                statusText.innerText = "Current Image Attached (Upload new to replace)";
+                statusText.classList.remove('hidden');
+                statusText.classList.replace('text-emerald-400', 'text-blue-400');
+            } else {
+                statusText.classList.add('hidden');
+            }
+
+            // Change UI for Edit Mode
+            document.getElementById('form-title').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-amber-400"></i> Edit Trade Information';
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Update Trade Record';
+            submitBtn.classList.replace('bg-blue-600', 'bg-amber-600');
+            submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-amber-700');
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+            switchTab('new');
+            lucide.createIcons();
+            window.scrollTo(0, 0); // Scroll to top
+        };
+
+        window.cancelEdit = function() {
+            editingTradeId = null;
+            resetFormUI();
+            switchTab('history');
+        };
+
+        function resetFormUI() {
+            document.getElementById('view-new').reset();
+            document.getElementById('form-date').valueAsDate = new Date();
+            currentImageUrl = '';
+            const allCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]');
+            allCheckboxes.forEach(cb => cb.checked = false);
+            
+            const statusText = document.getElementById('image-status');
+            statusText.classList.add('hidden');
+            statusText.innerText = "Image attached successfully";
+            statusText.classList.replace('text-blue-400', 'text-emerald-400');
+
+            document.getElementById('form-title').innerHTML = '<i data-lucide="dollar-sign" class="w-5 h-5 text-blue-400"></i> Basic Information';
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.innerHTML = '<i data-lucide="plus-circle" class="w-5 h-5"></i> Save Trade Record';
+            submitBtn.classList.replace('bg-amber-600', 'bg-blue-600');
+            submitBtn.classList.replace('hover:bg-amber-700', 'hover:bg-blue-700');
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
             lucide.createIcons();
         }
 
@@ -318,7 +415,7 @@
 
             for(let i = 0; i < firstDay; i++) {
                 const empty = document.createElement('div');
-                empty.className = "h-8 md:h-10 rounded border border-transparent";
+                empty.className = "min-h-[4rem] md:min-h-[5.5rem] rounded border border-transparent";
                 grid.appendChild(empty);
             }
 
@@ -339,7 +436,7 @@
 
                 if(hasTrades) {
                     const onlyMissed = dayTrades.every(t => t.result === 'Missed');
-                    if(onlyMissed) colorClass = "bg-amber-500/20 border-amber-500/50 text-amber-400";
+                    if(onlyMissed) colorClass = "bg-amber-500/10 border-amber-500/40 text-amber-400";
                     else if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
                     else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
                     else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
@@ -347,11 +444,33 @@
 
                 if(day === today.getDate() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
 
-                daySquare.className = `h-8 md:h-10 flex items-center justify-center rounded border transition-colors cursor-default ${colorClass}`;
-                daySquare.innerHTML = `<span class="text-xs md:text-sm font-semibold">${day}</span>`;
-                if(hasTrades) daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)}`;
+                daySquare.className = `min-h-[4.5rem] md:min-h-[6rem] p-1.5 flex flex-col items-start justify-start rounded border transition-colors cursor-default ${colorClass}`;
+                
+                let innerHTML = `<span class="text-sm font-semibold w-full text-left mb-1 ${isToday(day) ? 'underline decoration-2 underline-offset-2' : ''}">${day}</span>`;
+                
+                if(hasTrades) {
+                    const wins = dayTrades.filter(t => t.result === 'Win').length;
+                    const losses = dayTrades.filter(t => t.result === 'Lose').length;
+                    const effective = wins + losses;
+                    const wr = effective > 0 ? Math.round((wins/effective)*100) : 0;
+                    const isMiss = dayTrades.every(t => t.result === 'Missed');
+
+                    if(isMiss) {
+                        innerHTML += `<div class="mt-auto w-full text-center space-y-0.5"><div class="text-[10px] md:text-xs font-bold opacity-80">${dayTrades.length} Missed</div></div>`;
+                    } else {
+                        innerHTML += `<div class="mt-auto w-full text-center space-y-0.5">
+                                        <div class="text-[10px] md:text-xs font-bold">${dayTrades.length} Trades</div>
+                                        <div class="text-[9px] md:text-[10px] opacity-80">WR: ${wr}%</div>
+                                      </div>`;
+                    }
+                    daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)} \nWin: ${wins} | Loss: ${losses}`;
+                }
+
+                daySquare.innerHTML = innerHTML;
                 grid.appendChild(daySquare);
             }
+            
+            function isToday(d) { return d === today.getDate() && month === today.getMonth() && year === today.getFullYear(); }
         }
 
         function updateChart() {
@@ -379,6 +498,8 @@
                         canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                         currentImageUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        statusText.innerText = "New Image attached successfully";
+                        statusText.classList.replace('text-blue-400', 'text-emerald-400');
                         statusText.classList.remove('hidden');
                     };
                     img.src = event.target.result;
@@ -412,16 +533,21 @@
                 checklist: selectedChecklist, 
                 comment: document.getElementById('form-comment').value, 
                 imageUrl: currentImageUrl, 
-                timestamp: Date.now() 
+                // Preserve old timestamp if editing, otherwise new Date
+                timestamp: editingTradeId ? tradesData.find(t=>t.id===editingTradeId).timestamp : Date.now() 
             };
             
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('btn-submit');
             const originalText = submitBtn.innerHTML; submitBtn.innerHTML = "Saving..."; submitBtn.disabled = true;
             try {
-                await addDoc(collection(db, 'trades'), newTrade);
-                document.getElementById('form-pnl').value = ''; document.getElementById('form-rr').value = ''; document.getElementById('form-setup').value = ''; document.getElementById('form-comment').value = ''; document.getElementById('form-image').value = ''; document.getElementById('image-status').classList.add('hidden'); document.getElementById('form-followed-plan').checked = true; document.getElementById('form-mistake').value = 'None'; currentImageUrl = '';
-                const allCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]');
-                allCheckboxes.forEach(cb => cb.checked = false);
+                if(editingTradeId) {
+                    await updateDoc(doc(db, 'trades', editingTradeId), newTrade);
+                    editingTradeId = null; // clear state
+                } else {
+                    await addDoc(collection(db, 'trades'), newTrade);
+                }
+                
+                resetFormUI();
                 switchTab('history');
             } catch (error) { console.error(error); alert("เกิดข้อผิดพลาดในการบันทึก"); } finally { submitBtn.innerHTML = originalText; submitBtn.disabled = false; }
         });
