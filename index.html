@@ -14,6 +14,8 @@
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         .tab-btn.active { background-color: #334155; color: white; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
         .tab-btn.active-blue { background-color: #2563eb; color: white; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .pulse-border { animation: pulseBorder 2s infinite; }
+        @keyframes pulseBorder { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-200 font-sans p-4 md:p-8 min-h-screen">
@@ -24,7 +26,7 @@
                 <div class="bg-blue-600 p-2 rounded-lg text-white"><i data-lucide="zap"></i></div>
                 <div>
                     <h1 class="text-xl font-bold text-white">CRT Trading Journal</h1>
-                    <p class="text-xs text-slate-400">Execution Tracking & Playbook</p>
+                    <p class="text-xs text-slate-400">Professional Edge & Execution</p>
                 </div>
             </div>
             
@@ -40,17 +42,38 @@
         </div>
 
         <div id="view-dashboard" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Total PnL</div><div id="stat-pnl" class="text-3xl font-bold text-white">$0.00</div></div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> Win Rate</div><div id="stat-winrate" class="text-3xl font-bold text-blue-400">0.0%</div></div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Total Trades</div><div id="stat-total" class="text-3xl font-bold text-white">0</div></div>
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="brain" class="w-4 h-4"></i> W / L / BE / Missed</div>
-                    <div class="text-xl md:text-2xl font-bold text-white mt-1">
-                        <span id="stat-wins" class="text-emerald-400" title="Win">0</span> <span class="text-slate-600">|</span> 
-                        <span id="stat-losses" class="text-red-400" title="Lose">0</span> <span class="text-slate-600">|</span> 
-                        <span id="stat-be" class="text-slate-400" title="Break Even">0</span> <span class="text-slate-600">|</span> 
-                        <span id="stat-missed" class="text-amber-400" title="Missed">0</span>
+            
+            <div id="daily-warning" class="hidden bg-red-950/80 border-2 border-red-500 p-4 md:p-5 rounded-xl flex items-center gap-4 shadow-lg pulse-border">
+                <div class="bg-red-500 p-3 rounded-full text-white"><i data-lucide="shield-alert" class="w-6 h-6"></i></div>
+                <div class="flex-1">
+                    <h3 class="text-red-400 font-bold text-lg tracking-wide uppercase">Daily Limit Reached!</h3>
+                    <p class="text-red-200 text-sm md:text-base">คุณขาดทุนวันนี้ไปแล้ว <span id="warn-loss" class="font-bold border-b border-red-400"></span> (เกินโควต้าที่ตั้งไว้) <b>หยุดเทรด ปิดจอ แล้วไปพักผ่อนครับ!</b></p>
+                </div>
+            </div>
+
+            <div class="flex justify-end items-center gap-2 text-sm">
+                <label class="text-slate-400 flex items-center gap-1"><i data-lucide="settings" class="w-4 h-4"></i> Max Daily Loss Limit ($):</label>
+                <input type="number" id="setting-daily-limit" value="50" class="w-20 bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-center focus:outline-none focus:border-blue-500" onchange="saveDailyLimit()">
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="target" class="w-3.5 h-3.5"></i> Total PnL</div><div id="stat-pnl" class="text-xl md:text-2xl font-bold text-white">$0.00</div></div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Win Rate</div><div id="stat-winrate" class="text-xl md:text-2xl font-bold text-blue-400">0.0%</div></div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Total Trades</div><div id="stat-total" class="text-xl md:text-2xl font-bold text-white">0</div></div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="brain" class="w-3.5 h-3.5"></i> W / L / BE / M</div>
+                    <div class="text-lg md:text-xl font-bold text-white mt-1">
+                        <span id="stat-wins" class="text-emerald-400">0</span><span class="text-slate-600 text-sm px-1">|</span><span id="stat-losses" class="text-red-400">0</span><span class="text-slate-600 text-sm px-1">|</span><span id="stat-be" class="text-slate-400">0</span>
                     </div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg relative group">
+                    <div class="text-slate-400 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="scale" class="w-3.5 h-3.5"></i> Profit Factor <i data-lucide="info" class="w-3 h-3 text-slate-500 cursor-help"></i></div>
+                    <div id="stat-pf" class="text-xl md:text-2xl font-bold text-amber-400">0.00</div>
+                    <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block w-48 bg-slate-900 text-xs text-slate-300 p-2 rounded border border-slate-600 shadow-lg z-10">กำไรรวม ÷ ขาดทุนรวม<br>(> 1.5 ถือว่าระบบมี Edge)</div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg relative group">
+                    <div class="text-slate-400 text-xs mb-1 flex items-center gap-1.5"><i data-lucide="gem" class="w-3.5 h-3.5"></i> Expectancy <i data-lucide="info" class="w-3 h-3 text-slate-500 cursor-help"></i></div>
+                    <div id="stat-exp" class="text-xl md:text-2xl font-bold text-emerald-400">$0.00</div>
+                    <div class="absolute bottom-full right-0 mb-2 hidden group-hover:block w-48 bg-slate-900 text-xs text-slate-300 p-2 rounded border border-slate-600 shadow-lg z-10">ค่าความคาดหวังเฉลี่ย: เทรด 1 ไม้จะได้เงินกี่ดอลลาร์</div>
                 </div>
             </div>
 
@@ -96,10 +119,7 @@
             <div class="bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-700 shadow-lg">
                 <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2"><i data-lucide="award" class="text-yellow-400 w-7 h-7"></i> The Playbook (A+ Setup Gallery)</h2>
                 <p class="text-slate-400 mb-8 border-b border-slate-700 pb-4">คลังภาพไม้เทรดหน้า Win ที่สมบูรณ์แบบ เปิดดูทุกเช้าเพื่อ Train your eyes ให้ชินกับกราฟทรง A+ Setup</p>
-                
-                <div id="playbook-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    </div>
-                
+                <div id="playbook-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
                 <div id="playbook-empty" class="hidden text-center text-slate-500 py-16 flex flex-col items-center border-2 border-dashed border-slate-700 rounded-xl">
                     <i data-lucide="image-off" class="w-16 h-16 mb-4 text-slate-600"></i>
                     <p class="text-lg font-medium text-slate-400">ยังไม่มีข้อมูลใน Playbook</p>
@@ -198,7 +218,33 @@
             </div>
         </form>
 
-        <div id="view-history" class="hidden space-y-6"><div id="history-container" class="space-y-6"></div><div id="history-empty" class="text-center text-slate-500 py-12 hidden">No trades recorded yet.</div></div>
+        <div id="view-history" class="hidden space-y-6">
+            
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow flex flex-col md:flex-row gap-4">
+                <div class="flex-1 relative">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 w-5 h-5 text-slate-400"></i>
+                    <input type="text" id="filter-search" onkeyup="applyFilters()" placeholder="ค้นหา Setup, โน้ต, หรือวันที่..." class="w-full bg-slate-900 border border-slate-600 rounded-lg pl-10 p-2 text-white outline-none focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+                <div class="flex gap-2">
+                    <select id="filter-result" onchange="applyFilters()" class="bg-slate-900 border border-slate-600 rounded-lg p-2 text-white outline-none cursor-pointer">
+                        <option value="all">All Results (ทั้งหมด)</option>
+                        <option value="Win">Win</option>
+                        <option value="Lose">Lose</option>
+                        <option value="BE">Break Even</option>
+                        <option value="Missed">Missed Setup</option>
+                    </select>
+                    <select id="filter-setup" onchange="applyFilters()" class="bg-slate-900 border border-slate-600 rounded-lg p-2 text-white outline-none cursor-pointer">
+                        <option value="all">All Setups</option>
+                        <option value="CRT A+">CRT A+</option>
+                        <option value="CRT B+">CRT B+</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="history-container" class="space-y-6"></div>
+            <div id="history-empty" class="text-center text-slate-500 py-12 hidden">ไม่พบข้อมูลไม้เทรดที่ตรงกับเงื่อนไข</div>
+        </div>
     </div>
 
     <script type="module">
@@ -224,6 +270,7 @@
         } catch (error) { console.error("Firebase init error:", error); }
 
         let tradesData = [];
+        let filteredTradesData = []; // สำหรับระบบ Filter
         let myChart = null;
         let mistakePieChart = null;
         let currentImageUrls = [];
@@ -232,6 +279,15 @@
         let calDate = new Date();
         let currentCalMonth = calDate.getMonth();
         let currentCalYear = calDate.getFullYear();
+        
+        // โหลดค่า Daily Limit จากเครื่อง
+        document.getElementById('setting-daily-limit').value = localStorage.getItem('dailyLossLimit') || '50';
+
+        window.saveDailyLimit = function() {
+            const val = document.getElementById('setting-daily-limit').value;
+            localStorage.setItem('dailyLossLimit', val);
+            updateDashboard(); // รีเช็ค Limit ใหม่ทันที
+        };
         
         lucide.createIcons();
         document.getElementById('form-date').valueAsDate = new Date();
@@ -247,6 +303,7 @@
             
             if(tabName === 'dashboard') updateDashboard();
             if(tabName === 'playbook') renderPlaybook();
+            if(tabName === 'history') applyFilters(); // รีโหลดฟิลเตอร์เมื่อเข้าหน้า History
             if(tabName !== 'new' && editingTradeId !== null) cancelEdit(); 
         };
 
@@ -266,42 +323,52 @@
                 const fetchedTrades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 fetchedTrades.sort((a, b) => new Date(b.date) - new Date(a.date) || b.timestamp - a.timestamp);
                 tradesData = fetchedTrades;
+                filteredTradesData = [...tradesData];
                 
-                renderHistory();
-                
+                if(!document.getElementById('view-history').classList.contains('hidden')) applyFilters();
                 if(!document.getElementById('view-dashboard').classList.contains('hidden')) updateDashboard();
                 if(!document.getElementById('view-playbook').classList.contains('hidden')) renderPlaybook();
             });
         }
 
-        // ================= PLAYBOOK RENDER =================
+        // ================= FILTER SYSTEM =================
+        window.applyFilters = function() {
+            const searchTerm = document.getElementById('filter-search').value.toLowerCase();
+            const resultFilter = document.getElementById('filter-result').value;
+            const setupFilter = document.getElementById('filter-setup').value;
+
+            filteredTradesData = tradesData.filter(t => {
+                const textStr = `${t.setup || ''} ${t.comment || ''} ${t.date || ''}`.toLowerCase();
+                const matchSearch = textStr.includes(searchTerm);
+                const matchResult = resultFilter === 'all' ? true : t.result === resultFilter;
+                const matchSetup = setupFilter === 'all' ? true : t.setup === setupFilter;
+                
+                return matchSearch && matchResult && matchSetup;
+            });
+            
+            renderHistory(filteredTradesData);
+        };
+
+        // ================= PLAYBOOK =================
         function renderPlaybook() {
             const container = document.getElementById('playbook-container');
             const emptyMsg = document.getElementById('playbook-empty');
             container.innerHTML = '';
             
-            // กรองเอาเฉพาะไม้ที่ Win และมีรูปภาพ
             const playbookTrades = tradesData.filter(t => t.result === 'Win' && t.imageUrls && t.imageUrls.length > 0);
             
-            if (playbookTrades.length === 0) {
-                emptyMsg.classList.remove('hidden');
-                return;
-            } else {
-                emptyMsg.classList.add('hidden');
-            }
+            if (playbookTrades.length === 0) { emptyMsg.classList.remove('hidden'); return; } 
+            else { emptyMsg.classList.add('hidden'); }
 
             playbookTrades.forEach(trade => {
                 const card = document.createElement('div');
                 card.className = "bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-lg group hover:border-slate-500 transition-colors";
-                
-                const imgSrc = trade.imageUrls[0]; // เอารูปแรกเป็นหน้าปก
+                const imgSrc = trade.imageUrls[0]; 
                 
                 let checkBadges = "";
                 if(trade.checklist && trade.checklist.length > 0) {
                     checkBadges = `<div class="flex flex-wrap gap-1 mt-3 pt-3 border-t border-slate-700/50">`;
-                    trade.checklist.forEach(item => {
-                        checkBadges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1.5 py-0.5 rounded text-[10px]">${item.split(':')[0]}</span>`;
-                    });
+                    trade.checklist.forEach(item => { checkBadges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1.5 py-0.5 rounded text-[10px]">${item.split(':')[0]}</span>`; });
                     checkBadges += `</div>`;
                 }
 
@@ -328,14 +395,16 @@
             lucide.createIcons();
         }
 
-        function renderHistory() {
+        // ================= HISTORY =================
+        function renderHistory(dataToRender = tradesData) {
             const container = document.getElementById('history-container');
             const emptyMsg = document.getElementById('history-empty');
             container.innerHTML = '';
-            if (tradesData.length === 0) { emptyMsg.classList.remove('hidden'); return; } 
+            
+            if (dataToRender.length === 0) { emptyMsg.classList.remove('hidden'); return; } 
             else emptyMsg.classList.add('hidden');
 
-            tradesData.forEach(trade => {
+            dataToRender.forEach(trade => {
                 const isPositivePnL = Number(trade.pnl) > 0;
                 const isWin = trade.result === 'Win';
                 const isLose = trade.result === 'Lose';
@@ -343,19 +412,17 @@
                 const isMissed = trade.result === 'Missed';
                 
                 const barColor = isWin ? 'bg-emerald-500' : isLose ? 'bg-red-500' : isBE ? 'bg-slate-500' : 'bg-amber-500';
-                
                 const card = document.createElement('div');
                 card.className = "bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row gap-6 relative overflow-hidden group";
                 
                 let cardHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 ${barColor}"></div>`;
-                
                 cardHTML += `<div class="flex-1 space-y-4 pl-2"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">${trade.setup || 'Trade Setup'}</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div>
                 <div class="flex items-center gap-3">
                     <span class="font-bold text-lg mr-2 ${isPositivePnL ? 'text-emerald-400' : Number(trade.pnl) < 0 ? 'text-red-400' : 'text-slate-300'}">${isMissed ? '' : (isPositivePnL ? '+' : '')}$${trade.pnl}</span>
                     <span class="px-3 py-1 rounded text-sm font-bold ${isWin ? 'bg-emerald-500/20 text-emerald-400' : isLose ? 'bg-red-500/20 text-red-400' : isBE ? 'bg-slate-600/50 text-slate-300' : 'bg-amber-500/20 text-amber-400'}">${trade.result}</span>
                     <div class="flex border-l border-slate-700 pl-3 ml-1 gap-1">
-                        <button onclick="editTrade('${trade.id}')" class="text-slate-500 hover:text-blue-400 transition-colors p-1" title="Edit"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                        <button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1" title="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="editTrade('${trade.id}')" class="text-slate-500 hover:text-blue-400 transition-colors p-1"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 </div></div>`;
                 
@@ -385,9 +452,7 @@
                     cardHTML += `<img src="${images[0]}" class="w-full h-40 object-cover cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${images[0]}', '_blank')" />`;
                     if(images.length > 1) {
                         cardHTML += `<div class="flex gap-1.5 p-2 bg-slate-800 overflow-x-auto border-t border-slate-700 custom-scrollbar">`;
-                        for(let i=1; i<images.length; i++) {
-                            cardHTML += `<img src="${images[i]}" class="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 border border-slate-600 flex-shrink-0" onclick="window.open('${images[i]}', '_blank')" />`;
-                        }
+                        for(let i=1; i<images.length; i++) { cardHTML += `<img src="${images[i]}" class="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 border border-slate-600 flex-shrink-0" onclick="window.open('${images[i]}', '_blank')" />`; }
                         cardHTML += `</div>`;
                     }
                     cardHTML += `</div>`;
@@ -398,6 +463,7 @@
             lucide.createIcons();
         }
 
+        // Image Handling
         document.getElementById('form-image').addEventListener('change', function(e) {
             const files = e.target.files;
             if (files.length > 0) {
@@ -411,8 +477,7 @@
                             if (width > height) { if (width > 800) { height *= 800 / width; width = 800; } } else { if (height > 800) { width *= 800 / height; height = 800; } }
                             canvas.width = width; canvas.height = height;
                             const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                            const resizedUrl = canvas.toDataURL('image/jpeg', 0.7);
-                            currentImageUrls.push(resizedUrl);
+                            currentImageUrls.push(canvas.toDataURL('image/jpeg', 0.7));
                             updateImagePreviewUI();
                         };
                         img.src = event.target.result;
@@ -431,25 +496,18 @@
                     container.innerHTML += `
                         <div class="relative w-14 h-14 rounded-md overflow-hidden border border-slate-600 group">
                             <img src="${url}" class="w-full h-full object-cover" />
-                            <button type="button" onclick="removeImage(${index})" class="absolute top-0 right-0 bg-red-600/90 text-white p-1 rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity" title="Remove image">
-                                <i data-lucide="x" class="w-3 h-3"></i>
-                            </button>
-                        </div>
-                    `;
+                            <button type="button" onclick="removeImage(${index})" class="absolute top-0 right-0 bg-red-600/90 text-white p-1 rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="x" class="w-3 h-3"></i></button>
+                        </div>`;
                 });
                 lucide.createIcons();
             }
         }
 
-        window.removeImage = function(index) {
-            currentImageUrls.splice(index, 1);
-            updateImagePreviewUI();
-        }
+        window.removeImage = function(index) { currentImageUrls.splice(index, 1); updateImagePreviewUI(); }
 
         window.editTrade = function(tradeId) {
             const trade = tradesData.find(t => t.id === tradeId);
             if(!trade) return;
-            
             editingTradeId = tradeId; 
 
             document.getElementById('form-date').value = trade.date || '';
@@ -472,37 +530,25 @@
             document.getElementById('form-title').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-amber-400"></i> Edit Trade Information';
             const submitBtn = document.getElementById('btn-submit');
             submitBtn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Update Trade';
-            submitBtn.classList.replace('bg-blue-600', 'bg-amber-600');
-            submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-amber-700');
+            submitBtn.classList.replace('bg-blue-600', 'bg-amber-600'); submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-amber-700');
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
 
-            switchTab('new');
-            lucide.createIcons();
-            window.scrollTo(0, 0); 
+            switchTab('new'); lucide.createIcons(); window.scrollTo(0, 0); 
         };
 
-        window.cancelEdit = function() {
-            editingTradeId = null;
-            resetFormUI();
-            switchTab('history');
-        };
+        window.cancelEdit = function() { editingTradeId = null; resetFormUI(); switchTab('history'); };
 
         function resetFormUI() {
             document.getElementById('view-new').reset();
             document.getElementById('form-date').valueAsDate = new Date();
-            currentImageUrls = [];
-            updateImagePreviewUI();
-            
-            const allCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]');
-            allCheckboxes.forEach(cb => cb.checked = false);
+            currentImageUrls = []; updateImagePreviewUI();
+            document.querySelectorAll('#checklist-group input[type="checkbox"]').forEach(cb => cb.checked = false);
 
             document.getElementById('form-title').innerHTML = '<i data-lucide="rocket" class="w-5 h-5 text-blue-400"></i> Execution Info';
             const submitBtn = document.getElementById('btn-submit');
             submitBtn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Save Trade';
-            submitBtn.classList.replace('bg-amber-600', 'bg-blue-600');
-            submitBtn.classList.replace('hover:bg-amber-700', 'hover:bg-blue-700');
-            document.getElementById('btn-cancel-edit').classList.add('hidden');
-            lucide.createIcons();
+            submitBtn.classList.replace('bg-amber-600', 'bg-blue-600'); submitBtn.classList.replace('hover:bg-amber-700', 'hover:bg-blue-700');
+            document.getElementById('btn-cancel-edit').classList.add('hidden'); lucide.createIcons();
         }
 
         window.deleteTrade = async function(tradeId) {
@@ -510,6 +556,7 @@
             if(confirm("Are you sure you want to delete this trade?")) await deleteDoc(doc(db, 'trades', tradeId));
         };
 
+        // ================= DASHBOARD & STATS =================
         function updateDashboard() {
             const totalTrades = tradesData.length;
             const wins = tradesData.filter(t => t.result === 'Win').length;
@@ -521,110 +568,105 @@
             const winRate = effectiveTrades > 0 ? ((wins / effectiveTrades) * 100).toFixed(1) : 0;
             const totalPnl = tradesData.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
             
+            // Profit Factor & Expectancy Calculation
+            let grossProfit = 0; let grossLoss = 0;
+            tradesData.forEach(t => {
+                const pnl = Number(t.pnl || 0);
+                if (t.result === 'Win' && pnl > 0) grossProfit += pnl;
+                if (t.result === 'Lose' && pnl < 0) grossLoss += Math.abs(pnl);
+            });
+            
+            let profitFactor = "0.00";
+            if (grossLoss === 0 && grossProfit > 0) profitFactor = "∞";
+            else if (grossLoss > 0) profitFactor = (grossProfit / grossLoss).toFixed(2);
+            
+            const expectancy = effectiveTrades > 0 ? (totalPnl / effectiveTrades).toFixed(2) : "0.00";
+
+            // Update UI
             const pnlEl = document.getElementById('stat-pnl');
             pnlEl.innerText = `${totalPnl > 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
-            pnlEl.className = `text-3xl font-bold ${totalPnl > 0 ? 'text-emerald-400' : totalPnl < 0 ? 'text-red-400' : 'text-white'}`;
+            pnlEl.className = `text-xl md:text-2xl font-bold ${totalPnl > 0 ? 'text-emerald-400' : totalPnl < 0 ? 'text-red-400' : 'text-white'}`;
             
             document.getElementById('stat-winrate').innerText = `${winRate}%`;
             document.getElementById('stat-total').innerText = totalTrades;
             document.getElementById('stat-wins').innerText = wins;
             document.getElementById('stat-losses').innerText = losses;
             document.getElementById('stat-be').innerText = bes;
-            document.getElementById('stat-missed').innerText = missed;
             
+            document.getElementById('stat-pf').innerText = profitFactor;
+            document.getElementById('stat-pf').className = `text-xl md:text-2xl font-bold ${profitFactor >= 1.5 || profitFactor === '∞' ? 'text-emerald-400' : profitFactor >= 1.0 ? 'text-amber-400' : 'text-red-400'}`;
+            
+            document.getElementById('stat-exp').innerText = `${expectancy > 0 ? '+' : ''}$${expectancy}`;
+            document.getElementById('stat-exp').className = `text-xl md:text-2xl font-bold ${expectancy > 0 ? 'text-emerald-400' : 'text-red-400'}`;
+            
+            checkDailyDrawdown();
             renderSessionStats();
             updateChart();
-            updateMistakeChart(); // NEW: อัพเดทกราฟวงกลมสำหรับไม้ที่เสีย
+            updateMistakeChart(); 
             renderCalendar();
+        }
+
+        // ================= DAILY DRAWDOWN WARNING =================
+        function checkDailyDrawdown() {
+            const d = new Date();
+            // สร้างวันที่ format YYYY-MM-DD แบบ Local Time
+            const todayStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            
+            const limitStr = localStorage.getItem('dailyLossLimit') || '50';
+            const dailyLimit = Number(limitStr);
+            
+            // หา PnL รวมของวันนี้เฉพาะไม้ที่เสีย
+            const todayTrades = tradesData.filter(t => t.date === todayStr);
+            const todayPnl = todayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
+            
+            const warningEl = document.getElementById('daily-warning');
+            if (todayPnl <= -Math.abs(dailyLimit)) {
+                warningEl.classList.remove('hidden');
+                document.getElementById('warn-loss').innerText = `-$${Math.abs(todayPnl).toFixed(2)}`;
+            } else {
+                warningEl.classList.add('hidden');
+            }
         }
 
         function renderSessionStats() {
             const container = document.getElementById('session-stats-container');
             container.innerHTML = '';
-            
             const sessions = ['New York', 'London', 'Asian'];
-            
             sessions.forEach(session => {
                 const sessionTrades = tradesData.filter(t => t.session === session && t.result !== 'Missed');
-                
-                const total = sessionTrades.length;
-                const wins = sessionTrades.filter(t => t.result === 'Win').length;
-                const losses = sessionTrades.filter(t => t.result === 'Lose').length;
-                const bes = sessionTrades.filter(t => t.result === 'BE').length;
-                
-                const effective = wins + losses;
-                const winRate = effective > 0 ? ((wins / effective) * 100).toFixed(1) : 0;
+                const total = sessionTrades.length; const wins = sessionTrades.filter(t => t.result === 'Win').length; const losses = sessionTrades.filter(t => t.result === 'Lose').length; const bes = sessionTrades.filter(t => t.result === 'BE').length;
+                const effective = wins + losses; const winRate = effective > 0 ? ((wins / effective) * 100).toFixed(1) : 0;
                 const pnl = sessionTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
                 
-                let pnlColor = pnl > 0 ? 'text-emerald-400' : pnl < 0 ? 'text-red-400' : 'text-slate-300';
-                
-                const card = document.createElement('div');
-                card.className = "bg-slate-900/80 p-5 rounded-lg border border-slate-700 flex flex-col justify-between";
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-slate-400 font-semibold uppercase tracking-wider text-sm">${session}</span>
-                        <span class="bg-blue-900/30 text-blue-300 text-xs px-2 py-0.5 rounded border border-blue-800/50">WR: ${winRate}%</span>
-                    </div>
-                    <div class="text-2xl font-bold ${pnlColor} mb-3">${pnl > 0 ? '+' : ''}$${pnl.toFixed(2)}</div>
-                    <div class="flex justify-between text-xs text-slate-500 font-medium">
-                        <span>Trades: ${total}</span>
-                        <span class="flex gap-2">
-                            <span class="text-emerald-500/80">W: ${wins}</span> 
-                            <span class="text-red-500/80">L: ${losses}</span>
-                            <span class="text-slate-500">BE: ${bes}</span>
-                        </span>
-                    </div>
-                `;
+                const card = document.createElement('div'); card.className = "bg-slate-900/80 p-5 rounded-lg border border-slate-700 flex flex-col justify-between";
+                card.innerHTML = `<div class="flex justify-between items-center mb-3"><span class="text-slate-400 font-semibold uppercase tracking-wider text-sm">${session}</span><span class="bg-blue-900/30 text-blue-300 text-xs px-2 py-0.5 rounded border border-blue-800/50">WR: ${winRate}%</span></div><div class="text-2xl font-bold ${pnl > 0 ? 'text-emerald-400' : pnl < 0 ? 'text-red-400' : 'text-slate-300'} mb-3">${pnl > 0 ? '+' : ''}$${pnl.toFixed(2)}</div><div class="flex justify-between text-xs text-slate-500 font-medium"><span>Trades: ${total}</span><span class="flex gap-2"><span class="text-emerald-500/80">W: ${wins}</span><span class="text-red-500/80">L: ${losses}</span><span class="text-slate-500">BE: ${bes}</span></span></div>`;
                 container.appendChild(card);
             });
         }
 
         window.changeMonth = function(direction) {
             currentCalMonth += direction;
-            if (currentCalMonth < 0) {
-                currentCalMonth = 11;
-                currentCalYear--;
-            } else if (currentCalMonth > 11) {
-                currentCalMonth = 0;
-                currentCalYear++;
-            }
+            if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; } 
+            else if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
             renderCalendar();
         };
 
         function renderCalendar() {
-            const grid = document.getElementById('calendar-grid');
-            grid.innerHTML = '';
-            const today = new Date();
-            const year = currentCalYear; 
-            const month = currentCalMonth;
-            
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            document.getElementById('calendar-month').innerText = `${monthNames[month]} ${year}`;
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            const today = new Date(); const year = currentCalYear; const month = currentCalMonth;
+            document.getElementById('calendar-month').innerText = `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month]} ${year}`;
 
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            for(let i = 0; i < firstDay; i++) {
-                const empty = document.createElement('div');
-                empty.className = "min-h-[5rem] md:min-h-[7rem] rounded border border-transparent";
-                grid.appendChild(empty);
-            }
+            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for(let i = 0; i < firstDay; i++) { const empty = document.createElement('div'); empty.className = "min-h-[5rem] md:min-h-[7rem] rounded border border-transparent"; grid.appendChild(empty); }
 
             for(let day = 1; day <= daysInMonth; day++) {
-                const m = String(month+1).padStart(2, '0'); const d = String(day).padStart(2, '0');
-                const dateStr = `${year}-${m}-${d}`;
+                const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayTrades = tradesData.filter(t => t.date === dateStr);
-                
                 let dayPnl = 0; let hasTrades = false;
                 
-                if(dayTrades.length > 0) {
-                    hasTrades = true;
-                    dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
-                }
-
+                if(dayTrades.length > 0) { hasTrades = true; dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0); }
                 const daySquare = document.createElement('div');
-                let colorClass = "bg-slate-900 border-slate-800 text-slate-600 hover:border-slate-600"; 
+                let colorClass = "bg-slate-900 border-slate-800 text-slate-600"; 
 
                 if(hasTrades) {
                     const onlyMissed = dayTrades.every(t => t.result === 'Missed');
@@ -633,33 +675,19 @@
                     else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
                     else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
                 }
-
                 if(day === today.getDate() && month === today.getMonth() && year === today.getFullYear() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
 
                 daySquare.className = `min-h-[5rem] md:min-h-[7rem] p-2 flex flex-col items-start justify-start rounded border transition-colors cursor-default ${colorClass}`;
-                
                 let innerHTML = `<span class="text-sm md:text-base font-semibold w-full text-left mb-1 ${day === today.getDate() && month === today.getMonth() && year === today.getFullYear() ? 'underline decoration-2 underline-offset-2' : ''}">${day}</span>`;
                 
                 if(hasTrades) {
-                    const wins = dayTrades.filter(t => t.result === 'Win').length;
-                    const losses = dayTrades.filter(t => t.result === 'Lose').length;
-                    const effective = wins + losses;
-                    const wr = effective > 0 ? Math.round((wins/effective)*100) : 0;
-                    const isMiss = dayTrades.every(t => t.result === 'Missed');
-
-                    if(isMiss) {
-                        innerHTML += `<div class="mt-auto w-full text-center space-y-1"><div class="text-[10px] md:text-xs font-bold opacity-80">${dayTrades.length} Missed</div></div>`;
-                    } else {
-                        innerHTML += `<div class="mt-auto w-full text-center space-y-1">
-                                        <div class="text-xs md:text-sm font-bold tracking-tight">${dayTrades.length} Trades</div>
-                                        <div class="text-[10px] md:text-xs opacity-90 font-medium">WR: ${wr}%</div>
-                                      </div>`;
-                    }
-                    daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)} \nWin: ${wins} | Loss: ${losses}`;
+                    const wins = dayTrades.filter(t => t.result === 'Win').length; const losses = dayTrades.filter(t => t.result === 'Lose').length;
+                    const wr = (wins + losses) > 0 ? Math.round((wins/(wins + losses))*100) : 0;
+                    if(dayTrades.every(t => t.result === 'Missed')) { innerHTML += `<div class="mt-auto w-full text-center"><div class="text-[10px] md:text-xs font-bold opacity-80">${dayTrades.length} Missed</div></div>`; } 
+                    else { innerHTML += `<div class="mt-auto w-full text-center space-y-1"><div class="text-xs md:text-sm font-bold tracking-tight">${dayTrades.length} Trades</div><div class="text-[10px] md:text-xs opacity-90 font-medium">WR: ${wr}%</div></div>`; }
+                    daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)}`;
                 }
-
-                daySquare.innerHTML = innerHTML;
-                grid.appendChild(daySquare);
+                daySquare.innerHTML = innerHTML; grid.appendChild(daySquare);
             }
             lucide.createIcons();
         }
@@ -673,67 +701,31 @@
             
             if (myChart) myChart.destroy();
             Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif';
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'PnL ($)', data: pnlData, backgroundColor: backgroundColors, borderRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1 } }, scales: { y: { grid: { color: '#334155', borderDash: [3, 3] }, ticks: { callback: function(value) { return '$' + value; } } }, x: { grid: { display: false }, ticks: { display: false } } } } });
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'PnL ($)', data: pnlData, backgroundColor: backgroundColors, borderRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#334155', borderDash: [3, 3] }, ticks: { callback: function(value) { return '$' + value; } } }, x: { grid: { display: false }, ticks: { display: false } } } } });
         }
 
-        // ฟังก์ชันใหม่: กราฟ Mistake Analytics
         function updateMistakeChart() {
             const ctx = document.getElementById('mistakeChart').getContext('2d');
             const emptyMsg = document.getElementById('mistake-empty');
-            
-            // ดึงเฉพาะไม้ที่ Result เป็น Lose หรือ Missed
             const lossTrades = tradesData.filter(t => t.result === 'Lose' || t.result === 'Missed');
             
             if (lossTrades.length === 0) {
                 if (mistakePieChart) mistakePieChart.destroy();
-                emptyMsg.classList.remove('hidden');
-                document.getElementById('mistakeChart').classList.add('hidden');
+                emptyMsg.classList.remove('hidden'); document.getElementById('mistakeChart').classList.add('hidden');
                 return;
-            } else {
-                emptyMsg.classList.add('hidden');
-                document.getElementById('mistakeChart').classList.remove('hidden');
-            }
+            } else { emptyMsg.classList.add('hidden'); document.getElementById('mistakeChart').classList.remove('hidden'); }
 
             const mistakesCount = {};
-            lossTrades.forEach(t => {
-                const m = t.execution || 'Unknown';
-                mistakesCount[m] = (mistakesCount[m] || 0) + 1;
-            });
+            lossTrades.forEach(t => { const m = t.execution || 'Unknown'; mistakesCount[m] = (mistakesCount[m] || 0) + 1; });
+            const labels = Object.keys(mistakesCount); const data = Object.values(mistakesCount);
             
-            const labels = Object.keys(mistakesCount);
-            const data = Object.values(mistakesCount);
-            
-            // สีตามประเภทความผิดพลาด
             const bgColors = labels.map(label => {
-                if(label.includes('FOMO')) return '#fb923c'; // ส้ม
-                if(label.includes('Late')) return '#facc15'; // เหลือง
-                if(label.includes('Greed')) return '#ef4444'; // แดง
-                if(label.includes('Hesitation')) return '#c084fc'; // ม่วง
-                return '#64748b'; // สีเทา (ถ้าเป็น Perfect แต่ยังแพ้)
+                if(label.includes('FOMO')) return '#fb923c'; if(label.includes('Late')) return '#facc15';
+                if(label.includes('Greed')) return '#ef4444'; if(label.includes('Hesitation')) return '#c084fc'; return '#64748b';
             });
 
             if (mistakePieChart) mistakePieChart.destroy();
-            mistakePieChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: bgColors,
-                        borderWidth: 1,
-                        borderColor: '#1e293b'
-                    }]
-                },
-                options: {
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { color: '#cbd5e1', boxWidth: 12, padding: 15, font: { size: 11 } } },
-                        tooltip: { backgroundColor: '#0f172a', bodyColor: '#f8fafc', borderColor: '#334155', borderWidth: 1 }
-                    }
-                }
-            });
+            mistakePieChart = new Chart(ctx, { type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: bgColors, borderWidth: 1, borderColor: '#1e293b' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', boxWidth: 12, padding: 15, font: { size: 11 } } } } } });
         }
 
         document.getElementById('view-new').addEventListener('submit', async function(e) {
@@ -761,15 +753,9 @@
             const submitBtn = document.getElementById('btn-submit');
             const originalText = submitBtn.innerHTML; submitBtn.innerHTML = "Saving..."; submitBtn.disabled = true;
             try {
-                if(editingTradeId) {
-                    await updateDoc(doc(db, 'trades', editingTradeId), newTrade);
-                    editingTradeId = null; 
-                } else {
-                    await addDoc(collection(db, 'trades'), newTrade);
-                }
-                
-                resetFormUI();
-                switchTab('history');
+                if(editingTradeId) { await updateDoc(doc(db, 'trades', editingTradeId), newTrade); editingTradeId = null; } 
+                else { await addDoc(collection(db, 'trades'), newTrade); }
+                resetFormUI(); switchTab('history');
             } catch (error) { console.error(error); alert("เกิดข้อผิดพลาดในการบันทึก"); } finally { submitBtn.innerHTML = originalText; submitBtn.disabled = false; }
         });
 
