@@ -24,13 +24,14 @@
                 <div class="bg-blue-600 p-2 rounded-lg text-white"><i data-lucide="zap"></i></div>
                 <div>
                     <h1 class="text-xl font-bold text-white">CRT Trading Journal</h1>
-                    <p class="text-xs text-slate-400">Simplified execution tracking</p>
+                    <p class="text-xs text-slate-400">Execution Tracking & Playbook</p>
                 </div>
             </div>
             
             <div class="flex flex-wrap items-center gap-2">
                 <div class="flex bg-slate-900 rounded-lg p-1 mr-2" id="tab-container">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</button>
+                    <button onclick="switchTab('playbook')" id="btn-playbook" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="image" class="w-4 h-4"></i> Playbook</button>
                     <button onclick="switchTab('new')" id="btn-new" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="plus-circle" class="w-4 h-4"></i> New Trade</button>
                     <button onclick="switchTab('history')" id="btn-history" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="history" class="w-4 h-4"></i> History</button>
                 </div>
@@ -55,33 +56,54 @@
 
             <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
                 <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><i data-lucide="pie-chart" class="w-5 h-5 text-purple-400"></i> Performance by Session</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="session-stats-container">
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="session-stats-container"></div>
             </div>
             
-            <div class="grid grid-cols-1 gap-6">
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                    <h3 class="text-xl font-semibold text-white mb-6 flex justify-between items-center">
-                        <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-6 h-6 text-blue-400"></i> Performance Calendar</span>
-                        <div class="flex items-center gap-2 bg-slate-900 rounded-lg border border-slate-700 p-1">
-                            <button type="button" onclick="changeMonth(-1)" class="p-1.5 text-slate-400 hover:text-white transition"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                            <span id="calendar-month" class="text-sm font-medium text-slate-400 uppercase tracking-wider px-2"></span>
-                            <button type="button" onclick="changeMonth(1)" class="p-1.5 text-slate-400 hover:text-white transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                        </div>
-                    </h3>
-                    <div class="grid grid-cols-7 gap-2 md:gap-3 text-center text-sm font-bold text-slate-400 mb-2 uppercase tracking-wide"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-2 md:gap-3"></div>
-                    <div class="mt-6 flex justify-end gap-6 text-xs font-medium text-slate-400 border-t border-slate-700 pt-4">
-                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-emerald-500/50 border border-emerald-500/50"></div> Profit Day</span>
-                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-slate-500/50 border border-slate-500/50"></div> Break Even</span>
-                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/50 border border-red-500/50"></div> Loss Day</span>
-                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-amber-500/10 border border-amber-500/40"></div> Missed Only</span>
-                    </div>
-                </div>
-                
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg h-72 relative">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg h-80 relative">
                     <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-blue-400"></i> PnL History</h3>
                     <div class="absolute inset-0 top-16 bottom-6 left-6 right-6"><canvas id="pnlChart"></canvas></div>
+                </div>
+                
+                <div class="md:col-span-1 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg h-80 relative">
+                    <h3 class="text-lg font-semibold text-white mb-1 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400"></i> Mistake Analytics</h3>
+                    <p class="text-xs text-slate-400 mb-4">สาเหตุหลักของไม้ที่เสีย (Loss & Missed)</p>
+                    <div class="absolute inset-0 top-20 bottom-6 left-6 right-6 flex items-center justify-center">
+                        <canvas id="mistakeChart"></canvas>
+                        <div id="mistake-empty" class="hidden text-slate-500 text-sm text-center flex flex-col items-center gap-2">
+                            <i data-lucide="shield-check" class="w-8 h-8 text-emerald-500/50"></i>
+                            ยังไม่มีข้อมูลไม้เสีย<br>รักษาวินัยไว้เยี่ยมมาก!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                <h3 class="text-xl font-semibold text-white mb-6 flex justify-between items-center">
+                    <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-6 h-6 text-blue-400"></i> Performance Calendar</span>
+                    <div class="flex items-center gap-2 bg-slate-900 rounded-lg border border-slate-700 p-1">
+                        <button type="button" onclick="changeMonth(-1)" class="p-1.5 text-slate-400 hover:text-white transition"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                        <span id="calendar-month" class="text-sm font-medium text-slate-400 uppercase tracking-wider px-2"></span>
+                        <button type="button" onclick="changeMonth(1)" class="p-1.5 text-slate-400 hover:text-white transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                    </div>
+                </h3>
+                <div class="grid grid-cols-7 gap-2 md:gap-3 text-center text-sm font-bold text-slate-400 mb-2 uppercase tracking-wide"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-2 md:gap-3"></div>
+            </div>
+        </div>
+
+        <div id="view-playbook" class="hidden space-y-6">
+            <div class="bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-700 shadow-lg">
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-2"><i data-lucide="award" class="text-yellow-400 w-7 h-7"></i> The Playbook (A+ Setup Gallery)</h2>
+                <p class="text-slate-400 mb-8 border-b border-slate-700 pb-4">คลังภาพไม้เทรดหน้า Win ที่สมบูรณ์แบบ เปิดดูทุกเช้าเพื่อ Train your eyes ให้ชินกับกราฟทรง A+ Setup</p>
+                
+                <div id="playbook-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+                
+                <div id="playbook-empty" class="hidden text-center text-slate-500 py-16 flex flex-col items-center border-2 border-dashed border-slate-700 rounded-xl">
+                    <i data-lucide="image-off" class="w-16 h-16 mb-4 text-slate-600"></i>
+                    <p class="text-lg font-medium text-slate-400">ยังไม่มีข้อมูลใน Playbook</p>
+                    <p class="text-sm mt-2">วิธีเพิ่ม: ให้บันทึกเทรดที่ <span class="text-emerald-400">Result = Win</span> และ <span class="text-blue-400">แนบรูปภาพ</span> อย่างน้อย 1 รูป</p>
                 </div>
             </div>
         </div>
@@ -201,7 +223,9 @@
             db = getFirestore(app);
         } catch (error) { console.error("Firebase init error:", error); }
 
-        let tradesData = [], myChart = null;
+        let tradesData = [];
+        let myChart = null;
+        let mistakePieChart = null;
         let currentImageUrls = [];
         let editingTradeId = null;
 
@@ -213,16 +237,16 @@
         document.getElementById('form-date').valueAsDate = new Date();
 
         window.switchTab = function(tabName) {
-            document.getElementById('view-dashboard').classList.add('hidden');
-            document.getElementById('view-new').classList.add('hidden');
-            document.getElementById('view-history').classList.add('hidden');
-            document.getElementById('btn-dashboard').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
-            document.getElementById('btn-new').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
-            document.getElementById('btn-history').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
+            ['dashboard', 'playbook', 'new', 'history'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
+            });
+            
             document.getElementById(`view-${tabName}`).classList.remove('hidden');
             document.getElementById(`btn-${tabName}`).classList.add(tabName === 'new' ? 'active-blue' : 'active');
             
             if(tabName === 'dashboard') updateDashboard();
+            if(tabName === 'playbook') renderPlaybook();
             if(tabName !== 'new' && editingTradeId !== null) cancelEdit(); 
         };
 
@@ -242,9 +266,66 @@
                 const fetchedTrades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 fetchedTrades.sort((a, b) => new Date(b.date) - new Date(a.date) || b.timestamp - a.timestamp);
                 tradesData = fetchedTrades;
+                
                 renderHistory();
+                
                 if(!document.getElementById('view-dashboard').classList.contains('hidden')) updateDashboard();
+                if(!document.getElementById('view-playbook').classList.contains('hidden')) renderPlaybook();
             });
+        }
+
+        // ================= PLAYBOOK RENDER =================
+        function renderPlaybook() {
+            const container = document.getElementById('playbook-container');
+            const emptyMsg = document.getElementById('playbook-empty');
+            container.innerHTML = '';
+            
+            // กรองเอาเฉพาะไม้ที่ Win และมีรูปภาพ
+            const playbookTrades = tradesData.filter(t => t.result === 'Win' && t.imageUrls && t.imageUrls.length > 0);
+            
+            if (playbookTrades.length === 0) {
+                emptyMsg.classList.remove('hidden');
+                return;
+            } else {
+                emptyMsg.classList.add('hidden');
+            }
+
+            playbookTrades.forEach(trade => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-lg group hover:border-slate-500 transition-colors";
+                
+                const imgSrc = trade.imageUrls[0]; // เอารูปแรกเป็นหน้าปก
+                
+                let checkBadges = "";
+                if(trade.checklist && trade.checklist.length > 0) {
+                    checkBadges = `<div class="flex flex-wrap gap-1 mt-3 pt-3 border-t border-slate-700/50">`;
+                    trade.checklist.forEach(item => {
+                        checkBadges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1.5 py-0.5 rounded text-[10px]">${item.split(':')[0]}</span>`;
+                    });
+                    checkBadges += `</div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="relative h-48 overflow-hidden bg-slate-950">
+                        <img src="${imgSrc}" class="w-full h-full object-cover opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100 cursor-pointer" onclick="window.open('${imgSrc}', '_blank')">
+                        <div class="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md backdrop-blur-sm">+$${trade.pnl}</div>
+                        <div class="absolute top-3 left-3 bg-slate-900/80 border border-slate-600 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm">${trade.type}</div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-white text-lg">${trade.setup || 'CRT Setup'}</h3>
+                            <span class="text-xs font-medium text-slate-400 flex items-center gap-1 bg-slate-800 px-2 py-1 rounded-full"><i data-lucide="calendar" class="w-3 h-3"></i> ${trade.date}</span>
+                        </div>
+                        <div class="flex gap-2 text-xs font-medium">
+                            <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded">${trade.session}</span>
+                            <span class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-1 rounded">${trade.execution}</span>
+                        </div>
+                        ${checkBadges}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
         }
 
         function renderHistory() {
@@ -453,10 +534,10 @@
             
             renderSessionStats();
             updateChart();
+            updateMistakeChart(); // NEW: อัพเดทกราฟวงกลมสำหรับไม้ที่เสีย
             renderCalendar();
         }
 
-        // ฟังก์ชันใหม่: คำนวณและแสดงผล Analytics by Session
         function renderSessionStats() {
             const container = document.getElementById('session-stats-container');
             container.innerHTML = '';
@@ -464,7 +545,6 @@
             const sessions = ['New York', 'London', 'Asian'];
             
             sessions.forEach(session => {
-                // ดึงเฉพาะไม้เทรดของ Session นี้ (ไม่นับพวกที่ Missed Setup)
                 const sessionTrades = tradesData.filter(t => t.session === session && t.result !== 'Missed');
                 
                 const total = sessionTrades.length;
@@ -594,6 +674,66 @@
             if (myChart) myChart.destroy();
             Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif';
             myChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'PnL ($)', data: pnlData, backgroundColor: backgroundColors, borderRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1 } }, scales: { y: { grid: { color: '#334155', borderDash: [3, 3] }, ticks: { callback: function(value) { return '$' + value; } } }, x: { grid: { display: false }, ticks: { display: false } } } } });
+        }
+
+        // ฟังก์ชันใหม่: กราฟ Mistake Analytics
+        function updateMistakeChart() {
+            const ctx = document.getElementById('mistakeChart').getContext('2d');
+            const emptyMsg = document.getElementById('mistake-empty');
+            
+            // ดึงเฉพาะไม้ที่ Result เป็น Lose หรือ Missed
+            const lossTrades = tradesData.filter(t => t.result === 'Lose' || t.result === 'Missed');
+            
+            if (lossTrades.length === 0) {
+                if (mistakePieChart) mistakePieChart.destroy();
+                emptyMsg.classList.remove('hidden');
+                document.getElementById('mistakeChart').classList.add('hidden');
+                return;
+            } else {
+                emptyMsg.classList.add('hidden');
+                document.getElementById('mistakeChart').classList.remove('hidden');
+            }
+
+            const mistakesCount = {};
+            lossTrades.forEach(t => {
+                const m = t.execution || 'Unknown';
+                mistakesCount[m] = (mistakesCount[m] || 0) + 1;
+            });
+            
+            const labels = Object.keys(mistakesCount);
+            const data = Object.values(mistakesCount);
+            
+            // สีตามประเภทความผิดพลาด
+            const bgColors = labels.map(label => {
+                if(label.includes('FOMO')) return '#fb923c'; // ส้ม
+                if(label.includes('Late')) return '#facc15'; // เหลือง
+                if(label.includes('Greed')) return '#ef4444'; // แดง
+                if(label.includes('Hesitation')) return '#c084fc'; // ม่วง
+                return '#64748b'; // สีเทา (ถ้าเป็น Perfect แต่ยังแพ้)
+            });
+
+            if (mistakePieChart) mistakePieChart.destroy();
+            mistakePieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderWidth: 1,
+                        borderColor: '#1e293b'
+                    }]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { color: '#cbd5e1', boxWidth: 12, padding: 15, font: { size: 11 } } },
+                        tooltip: { backgroundColor: '#0f172a', bodyColor: '#f8fafc', borderColor: '#334155', borderWidth: 1 }
+                    }
+                }
+            });
         }
 
         document.getElementById('view-new').addEventListener('submit', async function(e) {
