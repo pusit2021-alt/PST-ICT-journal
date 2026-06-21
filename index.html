@@ -52,6 +52,12 @@
                     </div>
                 </div>
             </div>
+
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><i data-lucide="pie-chart" class="w-5 h-5 text-purple-400"></i> Performance by Session</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="session-stats-container">
+                    </div>
+            </div>
             
             <div class="grid grid-cols-1 gap-6">
                 <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
@@ -108,7 +114,13 @@
                             <option value="Other">Other / Counter Trend</option>
                         </select>
                     </div>
-                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Session</label><select id="form-session" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none"><option value="New York">New York</option><option value="London">London</option><option value="Asian">Asian</option></select></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Session</label>
+                        <select id="form-session" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
+                            <option value="New York">New York</option>
+                            <option value="London">London</option>
+                            <option value="Asian">Asian</option>
+                        </select>
+                    </div>
                     <div><label class="block text-sm font-medium text-slate-400 mb-1">Execution Quality</label>
                         <select id="form-execution" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
                             <option value="Perfect">Perfect Execution (ทำตามแผน)</option>
@@ -193,7 +205,6 @@
         let currentImageUrls = [];
         let editingTradeId = null;
 
-        // ตัวแปรสำหรับคุมสถานะปฏิทิน
         let calDate = new Date();
         let currentCalMonth = calDate.getMonth();
         let currentCalYear = calDate.getFullYear();
@@ -440,11 +451,55 @@
             document.getElementById('stat-be').innerText = bes;
             document.getElementById('stat-missed').innerText = missed;
             
+            renderSessionStats();
             updateChart();
             renderCalendar();
         }
 
-        // ฟังก์ชันกดสลับปฏิทินย้อนหลัง/ไปข้างหน้า
+        // ฟังก์ชันใหม่: คำนวณและแสดงผล Analytics by Session
+        function renderSessionStats() {
+            const container = document.getElementById('session-stats-container');
+            container.innerHTML = '';
+            
+            const sessions = ['New York', 'London', 'Asian'];
+            
+            sessions.forEach(session => {
+                // ดึงเฉพาะไม้เทรดของ Session นี้ (ไม่นับพวกที่ Missed Setup)
+                const sessionTrades = tradesData.filter(t => t.session === session && t.result !== 'Missed');
+                
+                const total = sessionTrades.length;
+                const wins = sessionTrades.filter(t => t.result === 'Win').length;
+                const losses = sessionTrades.filter(t => t.result === 'Lose').length;
+                const bes = sessionTrades.filter(t => t.result === 'BE').length;
+                
+                const effective = wins + losses;
+                const winRate = effective > 0 ? ((wins / effective) * 100).toFixed(1) : 0;
+                const pnl = sessionTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
+                
+                let pnlColor = pnl > 0 ? 'text-emerald-400' : pnl < 0 ? 'text-red-400' : 'text-slate-300';
+                
+                const card = document.createElement('div');
+                card.className = "bg-slate-900/80 p-5 rounded-lg border border-slate-700 flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-slate-400 font-semibold uppercase tracking-wider text-sm">${session}</span>
+                        <span class="bg-blue-900/30 text-blue-300 text-xs px-2 py-0.5 rounded border border-blue-800/50">WR: ${winRate}%</span>
+                    </div>
+                    <div class="text-2xl font-bold ${pnlColor} mb-3">${pnl > 0 ? '+' : ''}$${pnl.toFixed(2)}</div>
+                    <div class="flex justify-between text-xs text-slate-500 font-medium">
+                        <span>Trades: ${total}</span>
+                        <span class="flex gap-2">
+                            <span class="text-emerald-500/80">W: ${wins}</span> 
+                            <span class="text-red-500/80">L: ${losses}</span>
+                            <span class="text-slate-500">BE: ${bes}</span>
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
         window.changeMonth = function(direction) {
             currentCalMonth += direction;
             if (currentCalMonth < 0) {
@@ -499,7 +554,6 @@
                     else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
                 }
 
-                // ตรวจสอบเช็ควันปัจจุบันตามเวลาจริง
                 if(day === today.getDate() && month === today.getMonth() && year === today.getFullYear() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
 
                 daySquare.className = `min-h-[5rem] md:min-h-[7rem] p-2 flex flex-col items-start justify-start rounded border transition-colors cursor-default ${colorClass}`;
