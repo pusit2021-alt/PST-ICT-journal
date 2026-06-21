@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRT Trading Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .tab-btn.active { background-color: #334155; color: white; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        .tab-btn.active-blue { background-color: #2563eb; color: white; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 font-sans p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg text-white"><i data-lucide="zap"></i></div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">CRT Trading Journal</h1>
+                    <p class="text-xs text-slate-400">Simplified execution tracking</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex bg-slate-900 rounded-lg p-1 mr-2" id="tab-container">
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn active flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</button>
+                    <button onclick="switchTab('new')" id="btn-new" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="plus-circle" class="w-4 h-4"></i> New Trade</button>
+                    <button onclick="switchTab('history')" id="btn-history" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white"><i data-lucide="history" class="w-4 h-4"></i> History</button>
+                </div>
+                <button onclick="exportToCSV()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-all shadow"><i data-lucide="download" class="w-4 h-4"></i> Export</button>
+            </div>
+        </div>
+
+        <div id="view-dashboard" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Total PnL</div><div id="stat-pnl" class="text-3xl font-bold text-white">$0.00</div></div>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4"></i> Win Rate</div><div id="stat-winrate" class="text-3xl font-bold text-blue-400">0.0%</div></div>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Total Trades</div><div id="stat-total" class="text-3xl font-bold text-white">0</div></div>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-sm mb-1 flex items-center gap-2"><i data-lucide="brain" class="w-4 h-4"></i> W / L / BE / Missed</div>
+                    <div class="text-xl md:text-2xl font-bold text-white mt-1">
+                        <span id="stat-wins" class="text-emerald-400" title="Win">0</span> <span class="text-slate-600">|</span> 
+                        <span id="stat-losses" class="text-red-400" title="Lose">0</span> <span class="text-slate-600">|</span> 
+                        <span id="stat-be" class="text-slate-400" title="Break Even">0</span> <span class="text-slate-600">|</span> 
+                        <span id="stat-missed" class="text-amber-400" title="Missed">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-6">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                    <h3 class="text-xl font-semibold text-white mb-6 flex justify-between items-center">
+                        <span class="flex items-center gap-2"><i data-lucide="calendar" class="w-6 h-6 text-blue-400"></i> Performance Calendar</span>
+                        <span id="calendar-month" class="text-base font-medium text-slate-400 uppercase tracking-wider bg-slate-900 px-4 py-1.5 rounded-lg border border-slate-700"></span>
+                    </h3>
+                    <div class="grid grid-cols-7 gap-2 md:gap-3 text-center text-sm font-bold text-slate-400 mb-2 uppercase tracking-wide"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-2 md:gap-3"></div>
+                    <div class="mt-6 flex justify-end gap-6 text-xs font-medium text-slate-400 border-t border-slate-700 pt-4">
+                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-emerald-500/50 border border-emerald-500/50"></div> Profit Day</span>
+                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-slate-500/50 border border-slate-500/50"></div> Break Even</span>
+                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500/50 border border-red-500/50"></div> Loss Day</span>
+                        <span class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-amber-500/10 border border-amber-500/40"></div> Missed Only</span>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg h-72 relative">
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-5 h-5 text-blue-400"></i> PnL History</h3>
+                    <div class="absolute inset-0 top-16 bottom-6 left-6 right-6"><canvas id="pnlChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <form id="view-new" class="hidden bg-slate-800 p-6 md:p-8 rounded-xl border border-slate-700 shadow-lg space-y-8 relative">
+            <div>
+                <h3 id="form-title" class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4 flex items-center gap-2"><i data-lucide="rocket" class="w-5 h-5 text-blue-400"></i> Execution Info</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Date</label><input type="date" id="form-date" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Direction</label><select id="form-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500"><option value="Long">Long</option><option value="Short">Short</option></select></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Result</label>
+                        <select id="form-result" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Win">Win</option>
+                            <option value="Lose">Lose</option>
+                            <option value="BE">Break Even</option>
+                            <option value="Missed">Missed Setup</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">PnL ($)</label><input type="number" step="0.01" id="form-pnl" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Target R:R</label><input type="number" step="0.1" id="form-rr" placeholder="e.g. 2.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Setup Type</label>
+                        <select id="form-setup" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="CRT A+">CRT A+ (สลับสี)</option>
+                            <option value="CRT B+">CRT B+ (ไม่สลับสี)</option>
+                            <option value="Other">Other / Counter Trend</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Session</label><select id="form-session" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none"><option value="New York">New York</option><option value="London">London</option><option value="Asian">Asian</option></select></div>
+                    <div><label class="block text-sm font-medium text-slate-400 mb-1">Execution Quality</label>
+                        <select id="form-execution" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none">
+                            <option value="Perfect">Perfect Execution (ทำตามแผน)</option>
+                            <option value="FOMO">FOMO / Early Entry (รีบเข้า)</option>
+                            <option value="Late">Late Entry (เข้าช้า/ตกรถ)</option>
+                            <option value="Greed">Greed / Overleverage (โลภ)</option>
+                            <option value="Hesitation">Hesitation (ลังเล/กลัว)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4 flex items-center gap-2"><i data-lucide="check-square" class="w-5 h-5 text-pink-400"></i> Setup Verification</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <div class="bg-slate-900/80 p-4 rounded-lg border border-slate-700 space-y-3">
+                        <label class="block text-sm font-semibold text-white mb-2">Core CRT Conditions (ติ๊กเมื่อมี)</label>
+                        <div class="space-y-3" id="checklist-group">
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" value="CRT Formed" class="mt-0.5 w-4.5 h-4.5 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-blue-500" /> <span class="text-sm text-slate-300"><b>CRT Formed:</b> แท่ง 1 ยาว / แท่ง 2 ถอดไส้ + ย่อเข้า LTF หาจุดกลับตัว</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" value="LQ Swept" class="mt-0.5 w-4.5 h-4.5 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-blue-500" /> <span class="text-sm text-slate-300"><b>LQ Swept:</b> มีการกวาดสภาพคล่องโซนสำคัญ</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" value="Displacement" class="mt-0.5 w-4.5 h-4.5 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-blue-500" /> <span class="text-sm text-slate-300"><b>Displacement:</b> มี FVG / iFVG / CISD หรือ Fibo Level ชัดเจน</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" value="Confluence" class="mt-0.5 w-4.5 h-4.5 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-blue-500" /> <span class="text-sm text-slate-300"><b>Confluence:</b> เกิดใน POI ของ TF Day หรือตรง Session Time</span></label>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">Notes / Lessons</label>
+                            <textarea id="form-comment" rows="3" placeholder="มีอะไรน่าจดจำ หรือข้อผิดพลาดที่อยากเตือนตัวเอง..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white outline-none resize-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">Screenshots</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="flex flex-col items-center justify-center w-full h-16 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-900 hover:bg-slate-800 transition">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <i data-lucide="image-plus" class="w-5 h-5 text-slate-400"></i>
+                                        <span class="text-sm font-medium text-slate-400">Click to attach images</span>
+                                    </div>
+                                    <input type="file" id="form-image" class="hidden" accept="image/*" multiple />
+                                </label>
+                                <div id="image-preview-container" class="flex flex-wrap gap-2 empty:hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 pt-2">
+                <button type="button" id="btn-cancel-edit" onclick="cancelEdit()" class="hidden w-1/3 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"><i data-lucide="x" class="w-5 h-5"></i> Cancel</button>
+                <button type="submit" id="btn-submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 shadow-lg"><i data-lucide="save" class="w-5 h-5"></i> Save Trade</button>
+            </div>
+        </form>
+
+        <div id="view-history" class="hidden space-y-6"><div id="history-container" class="space-y-6"></div><div id="history-empty" class="text-center text-slate-500 py-12 hidden">No trades recorded yet.</div></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBh3YW1J4iIjBaf44teLKSDpxk20nX425w",
+            authDomain: "tradingjournal-58cad.firebaseapp.com",
+            projectId: "tradingjournal-58cad",
+            storageBucket: "tradingjournal-58cad.firebasestorage.app",
+            messagingSenderId: "1022988263064",
+            appId: "1:1022988263064:web:91f9d4e1a257f633b9baed",
+            measurementId: "G-EL7165KW85"
+        };
+        
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (error) { console.error("Firebase init error:", error); }
+
+        let tradesData = [], myChart = null;
+        let currentImageUrls = [];
+        let editingTradeId = null;
+        
+        lucide.createIcons();
+        document.getElementById('form-date').valueAsDate = new Date();
+
+        window.switchTab = function(tabName) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-new').classList.add('hidden');
+            document.getElementById('view-history').classList.add('hidden');
+            document.getElementById('btn-dashboard').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
+            document.getElementById('btn-new').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
+            document.getElementById('btn-history').className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-white";
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabName}`).classList.add(tabName === 'new' ? 'active-blue' : 'active');
+            
+            if(tabName === 'dashboard') updateDashboard();
+            if(tabName !== 'new' && editingTradeId !== null) cancelEdit(); 
+        };
+
+        if(auth) {
+            signInAnonymously(auth);
+            onAuthStateChanged(auth, (user) => {
+                if (user) { setupFirestoreListener(); } 
+            });
+        }
+
+        let unsubscribeSnapshot = null;
+        function setupFirestoreListener() {
+            if (!db) return;
+            const tradesRef = collection(db, 'trades');
+            if(unsubscribeSnapshot) unsubscribeSnapshot();
+            unsubscribeSnapshot = onSnapshot(tradesRef, (snapshot) => {
+                const fetchedTrades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                fetchedTrades.sort((a, b) => new Date(b.date) - new Date(a.date) || b.timestamp - a.timestamp);
+                tradesData = fetchedTrades;
+                renderHistory();
+                if(!document.getElementById('view-dashboard').classList.contains('hidden')) updateDashboard();
+            });
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-container');
+            const emptyMsg = document.getElementById('history-empty');
+            container.innerHTML = '';
+            if (tradesData.length === 0) { emptyMsg.classList.remove('hidden'); return; } 
+            else emptyMsg.classList.add('hidden');
+
+            tradesData.forEach(trade => {
+                const isPositivePnL = Number(trade.pnl) > 0;
+                const isWin = trade.result === 'Win';
+                const isLose = trade.result === 'Lose';
+                const isBE = trade.result === 'BE';
+                const isMissed = trade.result === 'Missed';
+                
+                const barColor = isWin ? 'bg-emerald-500' : isLose ? 'bg-red-500' : isBE ? 'bg-slate-500' : 'bg-amber-500';
+                
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row gap-6 relative overflow-hidden group";
+                
+                let cardHTML = `<div class="absolute left-0 top-0 bottom-0 w-1 ${barColor}"></div>`;
+                
+                cardHTML += `<div class="flex-1 space-y-4 pl-2"><div class="flex flex-wrap items-center justify-between border-b border-slate-700 pb-3 gap-2"><div class="flex items-center gap-3"><span class="px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'}">${trade.type}</span><span class="font-bold text-lg text-white">${trade.setup || 'Trade Setup'}</span><span class="text-slate-400 text-sm flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${trade.date}</span></div>
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-lg mr-2 ${isPositivePnL ? 'text-emerald-400' : Number(trade.pnl) < 0 ? 'text-red-400' : 'text-slate-300'}">${isMissed ? '' : (isPositivePnL ? '+' : '')}$${trade.pnl}</span>
+                    <span class="px-3 py-1 rounded text-sm font-bold ${isWin ? 'bg-emerald-500/20 text-emerald-400' : isLose ? 'bg-red-500/20 text-red-400' : isBE ? 'bg-slate-600/50 text-slate-300' : 'bg-amber-500/20 text-amber-400'}">${trade.result}</span>
+                    <div class="flex border-l border-slate-700 pl-3 ml-1 gap-1">
+                        <button onclick="editTrade('${trade.id}')" class="text-slate-500 hover:text-blue-400 transition-colors p-1" title="Edit"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="deleteTrade('${trade.id}')" class="text-slate-500 hover:text-red-400 transition-colors p-1" title="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div></div>`;
+                
+                cardHTML += `<div class="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4 text-sm">
+                    <div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Execution</span> <span class="text-slate-200 font-medium">${trade.execution || 'N/A'}</span></div>
+                    <div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Session</span> <span class="text-slate-200 font-medium">${trade.session || 'N/A'}</span></div>
+                    <div><span class="text-slate-500 block text-xs uppercase tracking-wider mb-0.5">Target R:R</span> <span class="text-slate-200 font-medium">${trade.rr || '-'}</span></div>
+                </div>`;
+                
+                if ((trade.checklist && trade.checklist.length > 0) || trade.comment) { 
+                    cardHTML += `<div class="bg-slate-900/50 p-4 rounded-lg space-y-3 text-sm mt-4 border border-slate-700/50">`; 
+                    if(trade.checklist && trade.checklist.length > 0) {
+                        cardHTML += `<div><span class="text-slate-400 font-semibold block mb-1">Conditions Met:</span> <div class="flex flex-wrap gap-2">`;
+                        trade.checklist.forEach(item => { cardHTML += `<span class="bg-blue-900/30 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded text-xs">${item}</span>`; });
+                        cardHTML += `</div></div>`;
+                    }
+                    if(trade.comment) cardHTML += `<div><span class="text-slate-400 font-semibold block mb-1">Notes:</span> <span class="text-slate-300 leading-relaxed">${trade.comment}</span></div>`; 
+                    cardHTML += `</div>`; 
+                }
+                cardHTML += `</div>`;
+                
+                let images = trade.imageUrls || [];
+                if(trade.imageUrl && images.length === 0) images.push(trade.imageUrl);
+
+                if (images.length > 0) {
+                    cardHTML += `<div class="w-full md:w-64 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 flex-shrink-0 flex flex-col">`;
+                    cardHTML += `<img src="${images[0]}" class="w-full h-40 object-cover cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${images[0]}', '_blank')" />`;
+                    if(images.length > 1) {
+                        cardHTML += `<div class="flex gap-1.5 p-2 bg-slate-800 overflow-x-auto border-t border-slate-700 custom-scrollbar">`;
+                        for(let i=1; i<images.length; i++) {
+                            cardHTML += `<img src="${images[i]}" class="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 border border-slate-600 flex-shrink-0" onclick="window.open('${images[i]}', '_blank')" />`;
+                        }
+                        cardHTML += `</div>`;
+                    }
+                    cardHTML += `</div>`;
+                }
+
+                card.innerHTML = cardHTML; container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        document.getElementById('form-image').addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width, height = img.height;
+                            if (width > height) { if (width > 800) { height *= 800 / width; width = 800; } } else { if (height > 800) { width *= 800 / height; height = 800; } }
+                            canvas.width = width; canvas.height = height;
+                            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                            const resizedUrl = canvas.toDataURL('image/jpeg', 0.7);
+                            currentImageUrls.push(resizedUrl);
+                            updateImagePreviewUI();
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            e.target.value = ''; 
+        });
+
+        function updateImagePreviewUI() {
+            const container = document.getElementById('image-preview-container');
+            container.innerHTML = '';
+            if(currentImageUrls.length > 0) {
+                currentImageUrls.forEach((url, index) => {
+                    container.innerHTML += `
+                        <div class="relative w-14 h-14 rounded-md overflow-hidden border border-slate-600 group">
+                            <img src="${url}" class="w-full h-full object-cover" />
+                            <button type="button" onclick="removeImage(${index})" class="absolute top-0 right-0 bg-red-600/90 text-white p-1 rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity" title="Remove image">
+                                <i data-lucide="x" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                lucide.createIcons();
+            }
+        }
+
+        window.removeImage = function(index) {
+            currentImageUrls.splice(index, 1);
+            updateImagePreviewUI();
+        }
+
+        window.editTrade = function(tradeId) {
+            const trade = tradesData.find(t => t.id === tradeId);
+            if(!trade) return;
+            
+            editingTradeId = tradeId; 
+
+            document.getElementById('form-date').value = trade.date || '';
+            document.getElementById('form-type').value = trade.type || 'Long';
+            document.getElementById('form-result').value = trade.result || 'Win';
+            document.getElementById('form-pnl').value = trade.pnl || '';
+            document.getElementById('form-rr').value = trade.rr || '';
+            document.getElementById('form-setup').value = trade.setup || 'CRT A+';
+            document.getElementById('form-session').value = trade.session || 'New York';
+            document.getElementById('form-execution').value = trade.execution || 'Perfect';
+            document.getElementById('form-comment').value = trade.comment || '';
+
+            const allCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]');
+            allCheckboxes.forEach(cb => { cb.checked = trade.checklist && trade.checklist.includes(cb.value); });
+
+            currentImageUrls = trade.imageUrls ? [...trade.imageUrls] : [];
+            if(trade.imageUrl && currentImageUrls.length === 0) currentImageUrls.push(trade.imageUrl);
+            updateImagePreviewUI();
+
+            document.getElementById('form-title').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-amber-400"></i> Edit Trade Information';
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Update Trade';
+            submitBtn.classList.replace('bg-blue-600', 'bg-amber-600');
+            submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-amber-700');
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+            switchTab('new');
+            lucide.createIcons();
+            window.scrollTo(0, 0); 
+        };
+
+        window.cancelEdit = function() {
+            editingTradeId = null;
+            resetFormUI();
+            switchTab('history');
+        };
+
+        function resetFormUI() {
+            document.getElementById('view-new').reset();
+            document.getElementById('form-date').valueAsDate = new Date();
+            currentImageUrls = [];
+            updateImagePreviewUI();
+            
+            const allCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]');
+            allCheckboxes.forEach(cb => cb.checked = false);
+
+            document.getElementById('form-title').innerHTML = '<i data-lucide="rocket" class="w-5 h-5 text-blue-400"></i> Execution Info';
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Save Trade';
+            submitBtn.classList.replace('bg-amber-600', 'bg-blue-600');
+            submitBtn.classList.replace('hover:bg-amber-700', 'hover:bg-blue-700');
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+            lucide.createIcons();
+        }
+
+        window.deleteTrade = async function(tradeId) {
+            if (!db) return;
+            if(confirm("Are you sure you want to delete this trade?")) await deleteDoc(doc(db, 'trades', tradeId));
+        };
+
+        function updateDashboard() {
+            const totalTrades = tradesData.length;
+            const wins = tradesData.filter(t => t.result === 'Win').length;
+            const losses = tradesData.filter(t => t.result === 'Lose').length;
+            const bes = tradesData.filter(t => t.result === 'BE').length;
+            const missed = tradesData.filter(t => t.result === 'Missed').length;
+            
+            const effectiveTrades = wins + losses;
+            const winRate = effectiveTrades > 0 ? ((wins / effectiveTrades) * 100).toFixed(1) : 0;
+            const totalPnl = tradesData.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
+            
+            const pnlEl = document.getElementById('stat-pnl');
+            pnlEl.innerText = `${totalPnl > 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
+            pnlEl.className = `text-3xl font-bold ${totalPnl > 0 ? 'text-emerald-400' : totalPnl < 0 ? 'text-red-400' : 'text-white'}`;
+            
+            document.getElementById('stat-winrate').innerText = `${winRate}%`;
+            document.getElementById('stat-total').innerText = totalTrades;
+            document.getElementById('stat-wins').innerText = wins;
+            document.getElementById('stat-losses').innerText = losses;
+            document.getElementById('stat-be').innerText = bes;
+            document.getElementById('stat-missed').innerText = missed;
+            
+            updateChart();
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            const today = new Date(); const year = today.getFullYear(); const month = today.getMonth();
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            document.getElementById('calendar-month').innerText = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for(let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = "min-h-[5rem] md:min-h-[7rem] rounded border border-transparent";
+                grid.appendChild(empty);
+            }
+
+            for(let day = 1; day <= daysInMonth; day++) {
+                const m = String(month+1).padStart(2, '0'); const d = String(day).padStart(2, '0');
+                const dateStr = `${year}-${m}-${d}`;
+                const dayTrades = tradesData.filter(t => t.date === dateStr);
+                
+                let dayPnl = 0; let hasTrades = false;
+                
+                if(dayTrades.length > 0) {
+                    hasTrades = true;
+                    dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0);
+                }
+
+                const daySquare = document.createElement('div');
+                let colorClass = "bg-slate-900 border-slate-800 text-slate-600 hover:border-slate-600"; 
+
+                if(hasTrades) {
+                    const onlyMissed = dayTrades.every(t => t.result === 'Missed');
+                    if(onlyMissed) colorClass = "bg-amber-500/10 border-amber-500/40 text-amber-400";
+                    else if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
+                    else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
+                    else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
+                }
+
+                if(day === today.getDate() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
+
+                daySquare.className = `min-h-[5rem] md:min-h-[7rem] p-2 flex flex-col items-start justify-start rounded border transition-colors cursor-default ${colorClass}`;
+                
+                let innerHTML = `<span class="text-sm md:text-base font-semibold w-full text-left mb-1 ${isToday(day) ? 'underline decoration-2 underline-offset-2' : ''}">${day}</span>`;
+                
+                if(hasTrades) {
+                    const wins = dayTrades.filter(t => t.result === 'Win').length;
+                    const losses = dayTrades.filter(t => t.result === 'Lose').length;
+                    const effective = wins + losses;
+                    const wr = effective > 0 ? Math.round((wins/effective)*100) : 0;
+                    const isMiss = dayTrades.every(t => t.result === 'Missed');
+
+                    if(isMiss) {
+                        innerHTML += `<div class="mt-auto w-full text-center space-y-1"><div class="text-[10px] md:text-xs font-bold opacity-80">${dayTrades.length} Missed</div></div>`;
+                    } else {
+                        innerHTML += `<div class="mt-auto w-full text-center space-y-1">
+                                        <div class="text-xs md:text-sm font-bold tracking-tight">${dayTrades.length} Trades</div>
+                                        <div class="text-[10px] md:text-xs opacity-90 font-medium">WR: ${wr}%</div>
+                                      </div>`;
+                    }
+                    daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)} \nWin: ${wins} | Loss: ${losses}`;
+                }
+
+                daySquare.innerHTML = innerHTML;
+                grid.appendChild(daySquare);
+            }
+            
+            function isToday(d) { return d === today.getDate() && month === today.getMonth() && year === today.getFullYear(); }
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('pnlChart').getContext('2d');
+            const chartDataArray = [...tradesData].reverse();
+            const labels = chartDataArray.map((t, idx) => `Trade ${idx+1}`);
+            const pnlData = chartDataArray.map(t => Number(t.pnl || 0));
+            const backgroundColors = chartDataArray.map(t => t.result === 'Missed' ? '#f59e0b' : t.pnl > 0 ? '#10b981' : t.pnl < 0 ? '#ef4444' : '#64748b');
+            
+            if (myChart) myChart.destroy();
+            Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif';
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'PnL ($)', data: pnlData, backgroundColor: backgroundColors, borderRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1 } }, scales: { y: { grid: { color: '#334155', borderDash: [3, 3] }, ticks: { callback: function(value) { return '$' + value; } } }, x: { grid: { display: false }, ticks: { display: false } } } } });
+        }
+
+        document.getElementById('view-new').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!db) return alert("กำลังเชื่อมต่อฐานข้อมูล กรุณารอสักครู่แล้วกดใหม่ครับ");
+            
+            const checklistCheckboxes = document.querySelectorAll('#checklist-group input[type="checkbox"]:checked');
+            const selectedChecklist = Array.from(checklistCheckboxes).map(cb => cb.value);
+
+            const newTrade = { 
+                date: document.getElementById('form-date').value, 
+                type: document.getElementById('form-type').value, 
+                result: document.getElementById('form-result').value, 
+                pnl: Number(document.getElementById('form-pnl').value), 
+                rr: Number(document.getElementById('form-rr').value || 0), 
+                setup: document.getElementById('form-setup').value, 
+                session: document.getElementById('form-session').value, 
+                execution: document.getElementById('form-execution').value, 
+                checklist: selectedChecklist, 
+                comment: document.getElementById('form-comment').value, 
+                imageUrls: currentImageUrls, 
+                timestamp: editingTradeId ? tradesData.find(t=>t.id===editingTradeId).timestamp : Date.now() 
+            };
+            
+            const submitBtn = document.getElementById('btn-submit');
+            const originalText = submitBtn.innerHTML; submitBtn.innerHTML = "Saving..."; submitBtn.disabled = true;
+            try {
+                if(editingTradeId) {
+                    await updateDoc(doc(db, 'trades', editingTradeId), newTrade);
+                    editingTradeId = null; 
+                } else {
+                    await addDoc(collection(db, 'trades'), newTrade);
+                }
+                
+                resetFormUI();
+                switchTab('history');
+            } catch (error) { console.error(error); alert("เกิดข้อผิดพลาดในการบันทึก"); } finally { submitBtn.innerHTML = originalText; submitBtn.disabled = false; }
+        });
+
+        window.exportToCSV = function() {
+            if(tradesData.length === 0) return;
+            const headers = ['Date', 'Type', 'Result', 'PnL', 'RR', 'Setup', 'Session', 'Execution', 'Checklist', 'Notes'];
+            const csvRows = [headers.join(',')];
+            tradesData.forEach(t => {
+                const checklistStr = t.checklist ? t.checklist.join(' | ') : '';
+                const values = [ t.date, t.type, t.result, t.pnl, t.rr, `"${t.setup || ''}"`, t.session, t.execution, `"${checklistStr}"`, `"${(t.comment || '').replace(/"/g, '""')}"` ];
+                csvRows.push(values.join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+            link.download = `CRT_Journal_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        };
+    </script>
+</body>
+</html>
