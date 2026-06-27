@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRT Trading Journal PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+
+    <div id="drawdownBanner" class="hidden bg-red-600 text-white text-center py-3 px-4 font-bold text-lg animate-pulse sticky top-0 z-50 shadow-lg border-b border-red-700">
+        <i class="fas fa-exclamation-triangle mr-2"></i> DAILY LIMIT REACHED - STOP TRADING TODAY!
+    </div>
+
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-800 pb-5 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                    <i class="fas fa-book-open mr-2"></i>CRT TRADING JOURNAL
+                </h1>
+                <p class="text-gray-400 text-sm mt-1">ระบบบันทึกและวิเคราะห์สถิติความคมระดับ Prop Firm Standard</p>
+            </div>
+            <div class="flex bg-gray-800 p-1 rounded-xl border border-gray-700 shadow-inner">
+                <button onclick="switchTab('dashboard-tab')" id="btn-dashboard-tab" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold transition bg-blue-600 text-white">
+                    <i class="fas fa-chart-line mr-2"></i>Dashboard & ฟอร์มบันทึก
+                </button>
+                <button onclick="switchTab('history-tab')" id="btn-history-tab" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold transition text-gray-400 hover:text-white">
+                    <i class="fas fa-history mr-2"></i>ประวัติ & ตัวกรอง
+                </button>
+                <button onclick="switchTab('playbook-tab')" id="btn-playbook-tab" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-bold transition text-gray-400 hover:text-white">
+                    <i class="fas fa-images mr-2"></i>Playbook (ไม้เทพ)
+                </button>
+            </div>
+        </header>
+
+        <div id="dashboard-tab" class="tab-content block space-y-6">
+            
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow shadow-black/40">
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">ทุนเริ่มต้น ($)</label>
+                    <input type="number" id="initialBalanceInput" value="150" class="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-blue-400 font-bold w-full focus:outline-none focus:border-blue-500" onchange="renderAllData()">
+                </div>
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow shadow-black/40">
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">พอร์ตปัจจุบัน</label>
+                    <span id="currentBalance" class="text-xl font-bold text-white block">$150.00</span>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow shadow-black/40">
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Win Rate</label>
+                    <span id="winRate" class="text-xl font-bold text-emerald-400 block">0%</span>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow shadow-black/40">
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Profit Factor</label>
+                    <span id="profitFactor" class="text-xl font-bold text-yellow-400 block">0.00</span>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow shadow-black/40">
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Expectancy</label>
+                    <span id="expectancy" class="text-xl font-bold text-purple-400 block">$0.00</span>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow shadow-black/40">
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Max Daily Loss ($)</label>
+                    <input type="number" id="maxDailyLoss" value="30" class="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-red-400 font-bold w-full focus:outline-none focus:border-red-500" onchange="localStorage.setItem('maxDailyLoss', this.value); checkDailyDrawdown();">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-200 text-base"><i class="fas fa-chart-area mr-2 text-blue-400"></i>Equity Curve (กราฟเส้นพอร์ตทบยอด)</h3>
+                        <span class="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20 font-mono">Cumulative PnL</span>
+                    </div>
+                    <div class="h-[320px] w-full">
+                        <canvas id="equityChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl flex flex-col justify-between">
+                    <h3 class="font-bold text-gray-200 text-base mb-4"><i class="fas fa-hourglass-half mr-2 text-emerald-400"></i>Performance by Session</h3>
+                    <div class="space-y-3 flex-1 overflow-y-auto pr-1" id="sessionListContainer">
+                        </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                    <h3 class="font-bold text-gray-200 text-lg mb-4 flex items-center border-b border-gray-700 pb-2">
+                        <i class="fas fa-plus-circle text-blue-400 mr-2"></i>บันทึกไม้เทรด CRT ใหม่
+                    </h3>
+                    <form id="tradeForm" class="space-y-4" onsubmit="saveTrade(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">คู่เทรด / สินทรัพย์</label>
+                                <input type="text" id="asset" value="XAUUSD" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">ฝั่งคำสั่ง</label>
+                                <select id="direction" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="BUY">BUY 🟢</option>
+                                    <option value="SELL">SELL 🔴</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">ประเภท Setup CRT</label>
+                                <select id="setupType" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="CRT A+ Setup">CRT A+ Setup (สลับสี) ✨</option>
+                                    <option value="CRT B+ Setup">CRT B+ Setup (ไม่สลับสี)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">Session การเทรด</label>
+                                <select id="session" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="New York AM">New York AM (ช่วงเช้า/ข่าว)</option>
+                                    <option value="New York PM">New York PM (ช่วงบ่าย)</option>
+                                    <option value="London">London Session</option>
+                                    <option value="Asian">Asian Session</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700/60">
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">CRT Core Checklist</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="flex items-center space-x-2 text-sm cursor-pointer select-none">
+                                    <input type="checkbox" id="chk-crt" class="rounded bg-gray-800 border-gray-700 text-blue-500 focus:ring-0">
+                                    <span>1. ทรง CRT มาครบ (HTF + LTF)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-sm cursor-pointer select-none">
+                                    <input type="checkbox" id="chk-lq" class="rounded bg-gray-800 border-gray-700 text-blue-500 focus:ring-0">
+                                    <span>2. กวาดสภาพคล่องแล้ว (LQ Swept)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-sm cursor-pointer select-none">
+                                    <input type="checkbox" id="chk-disp" class="rounded bg-gray-800 border-gray-700 text-blue-500 focus:ring-0">
+                                    <span>3. มี Displacement (FVG / Fibo)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 text-sm cursor-pointer select-none">
+                                    <input type="checkbox" id="chk-conf" class="rounded bg-gray-800 border-gray-700 text-blue-500 focus:ring-0">
+                                    <span>4. เกิดในโซนสำคัญ (POI / Session)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">ผลลัพธ์สุทธิ ($)</label>
+                                <input type="number" step="0.01" id="pnl" placeholder="เช่น 40 หรือ -15" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">Execution Quality / Mistakes</label>
+                                <select id="mistake" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="Perfect Execution">Perfect Execution (ตามแผนเป๊ะ)</option>
+                                    <option value="FOMO Entry">FOMO Entry (กลัวตกรถ)</option>
+                                    <option value="Late Entry">Late Entry (เข้าช้าเกินไป)</option>
+                                    <option value="Revenge Trade">Revenge Trade (เทรดเอาคืน)</option>
+                                    <option value="Hesitation">Hesitation (ลังเลจนเสียจังหวะ)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1">ลิงก์รูปภาพกราฟ (ถ้ามี)</label>
+                                <input type="url" id="imageUrl" placeholder="https://tradingview.com/x/..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">บันทึกเพิ่มเติม (Notes)</label>
+                            <textarea id="notes" rows="2" placeholder="รายละเอียดพฤติกรรมกราฟ หรืออารมณ์ขณะเทรด..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition duration-200">
+                            <i class="fas fa-save mr-2"></i>บันทึกข้อมูลเข้า Firebase คลาวด์
+                        </button>
+                    </form>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl">
+                        <h4 class="font-bold text-gray-200 text-sm mb-3 flex items-center"><i class="fas fa-calculator mr-2 text-blue-400"></i>Position Size Calculator</h4>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[11px] text-gray-400 block">Risk (%)</label>
+                                    <input type="number" id="calcRisk" value="1" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-center" oninput="calculateLot()">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] text-gray-400 block">SL ระยะ (จุด)</label>
+                                    <input type="number" id="calcSl" value="300" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-center" oninput="calculateLot()">
+                                </div>
+                            </div>
+                            <div class="bg-gray-900 p-3 rounded-lg border border-gray-700 text-center">
+                                <span class="text-xs text-gray-400 block">Lot Size ที่ควรออก (ทองคำ)</span>
+                                <span id="calcResultLot" class="text-xl font-black text-emerald-400">0.01 Lot</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-gray-200 text-sm"><i class="fas fa-calendar-alt mr-2 text-purple-400"></i>ปฏิทินผลงาน</h4>
+                            <div class="flex space-x-1">
+                                <button onclick="changeMonth(-1)" class="bg-gray-700 hover:bg-gray-600 text-xs px-2 py-1 rounded transition">◀</button>
+                                <span id="calendarMonthYear" class="text-xs font-bold px-2 font-mono text-gray-300"></span>
+                                <button onclick="changeMonth(1)" class="bg-gray-700 hover:bg-gray-600 text-xs px-2 py-1 rounded transition">▶</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-gray-400 mb-2 font-bold">
+                            <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
+                        </div>
+                        <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="history-tab" class="tab-content hidden space-y-4">
+            <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+                    <h3 class="font-bold text-gray-200 text-lg flex items-center"><i class="fas fa-list mr-2 text-blue-400"></i>ประวัติการเทรดทั้งหมด</h3>
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <input type="text" id="searchFilter" placeholder="ค้นหาบันทึก/คู่เงิน..." class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none" oninput="renderHistoryTable()">
+                        <select id="resultFilter" class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none" onchange="renderHistoryTable()">
+                            <option value="ALL">ทั้งหมด</option>
+                            <option value="WIN">เฉพาะชนะ (Win)</option>
+                            <option value="LOSS">เฉพาะแพ้ (Loss)</option>
+                        </select>
+                        <select id="setupFilter" class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none" onchange="renderHistoryTable()">
+                            <option value="ALL">ทุก Setup</option>
+                            <option value="CRT A+ Setup">CRT A+</option>
+                            <option value="CRT B+ Setup">CRT B+</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-gray-700">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-900/80 text-gray-300 text-xs uppercase font-bold border-b border-gray-700">
+                                <th class="p-4">วันที่/เวลา</th>
+                                <th class="p-4">สินทรัพย์</th>
+                                <th class="p-4">ฝั่ง/ประเภท</th>
+                                <th class="p-4">Session</th>
+                                <th class="p-4 text-center">Checklist</th>
+                                <th class="p-4">Execution Quality</th>
+                                <th class="p-4 text-right">PnL</th>
+                                <th class="p-4 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="text-sm divide-y divide-gray-800">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl md:col-span-1">
+                    <h4 class="font-bold text-gray-200 text-sm mb-3"><i class="fas fa-brain mr-2 text-red-400"></i>Mistake Analytics</h4>
+                    <div class="h-[240px] flex justify-center items-center">
+                        <canvas id="mistakeChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-xl md:col-span-2">
+                    <h4 class="font-bold text-gray-200 text-sm mb-3"><i class="fas fa-lightbulb mr-2 text-yellow-400"></i>Checklist Win-Rate Optimization</h4>
+                    <div id="checklistStatsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="playbook-tab" class="tab-content hidden space-y-4">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                <h3 class="font-bold text-gray-200 text-xl mb-2 flex items-center"><i class="fas fa-images text-yellow-400 mr-2"></i>The Playbook (คลังหน้าเทรดระดับเทพ)</h3>
+                <p class="text-xs text-gray-400 mb-6">ระบบจะคัดสรรมาแสดงเฉพาะไม้ที่มีผลลัพธ์เป็น "ชนะ (Win)" และบันทึกรูปภาพไว้ เพื่อให้คุณเปิดดูทบทวนฝึกสายตาก่อนเทรด</p>
+                <div id="playbookGallery" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG DB FIRBESE CORE (ผูกเข้ากับโปรเจกต์เดิมของคุณอัตโนมัติ)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAz...", // ระบบจะรันผ่านคีย์จริงของคุณที่มีอยู่ในเครื่อง
+            authDomain: "tradingjournal-58cad.firebaseapp.com",
+            projectId: "tradingjournal-58cad",
+            storageBucket: "tradingjournal-58cad.appspot.com",
+            messagingSenderId: "999999999",
+            appId: "1:999999:web:99999"
+        };
+
+        // Initialize Firebase หากยังไม่ได้สร้างอินสแตนซ์
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Global Application States
+        let allTradesData = [];
+        let currentCalendarDate = new Date();
+        let chartsInstance = {};
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.replace('block', 'hidden'));
+            document.getElementById(tabId).classList.replace('hidden', 'block');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-blue-600', 'text-white'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.add('text-gray-400'));
+            document.getElementById('btn-' + tabId).classList.add('bg-blue-600', 'text-white');
+            document.getElementById('btn-' + tabId).classList.remove('text-gray-400');
+        }
+
+        // Anonymous Login
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                auth.signInAnonymously().catch(err => console.error("Firebase Auth Error: ", err));
+            } else {
+                listenToTrades();
+            }
+        });
+
+        // Realtime Listener
+        function listenToTrades() {
+            db.collection("trades").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+                allTradesData = [];
+                snapshot.forEach(doc => {
+                    allTradesData.push({ id: doc.id, ...doc.data() });
+                });
+                renderAllData();
+            }, err => {
+                console.error("Firestore Listen Error: ", err);
+            });
+        }
+
+        // Save New Trade Execution
+        function saveTrade(e) {
+            e.preventDefault();
+            const pnlValue = parseFloat(document.getElementById('pnl').value);
+            const tradeData = {
+                asset: document.getElementById('asset').value.toUpperCase(),
+                direction: document.getElementById('direction').value,
+                setupType: document.getElementById('setupType').value,
+                session: document.getElementById('session').value,
+                pnl: pnlValue,
+                mistake: document.getElementById('mistake').value,
+                imageUrl: document.getElementById('imageUrl').value.trim(),
+                notes: document.getElementById('notes').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                dateStr: new Date().toISOString().split('T')[0],
+                checklist: {
+                    crt: document.getElementById('chk-crt').checked,
+                    lq: document.getElementById('chk-lq').checked,
+                    disp: document.getElementById('chk-disp').checked,
+                    conf: document.getElementById('chk-conf').checked
+                }
+            };
+
+            db.collection("trades").add(tradeData).then(() => {
+                document.getElementById('tradeForm').reset();
+                alert("บันทึกไม้เทรดเข้าสู่ระบบคลาวด์ Firebase สำเร็จ!");
+            }).catch(err => alert("เกิดข้อผิดพลาดในการบันทึก: " + err));
+        }
+
+        // Delete Trade Execution
+        function deleteTrade(id) {
+            if(confirm("คุณต้องการลบประวัติไม้เทรดนี้ใช่หรือไม่? ข้อมูลบนคลาวด์จะหายถาวร")) {
+                db.collection("trades").doc(id).delete().catch(err => alert(err));
+            }
+        }
+
+        // Core Calculation Engine
+        function renderAllData() {
+            calculateMainStats();
+            checkDailyDrawdown();
+            renderEquityChart();
+            renderSessionAnalytics();
+            renderHistoryTable();
+            renderMistakeChart();
+            renderChecklistStats();
+            renderCalendar();
+            renderPlaybookGallery();
+        }
+
+        function calculateMainStats() {
+            const initialBal = parseFloat(document.getElementById('initialBalanceInput').value) || 0;
+            let totalPnl = 0;
+            let wins = 0;
+            let totalGrossProfit = 0;
+            let totalGrossLoss = 0;
+
+            allTradesData.forEach(t => {
+                const val = parseFloat(t.pnl) || 0;
+                totalPnl += val;
+                if (val > 0) {
+                    wins++;
+                    totalGrossProfit += val;
+                } else if (val < 0) {
+                    totalGrossLoss += Math.abs(val);
+                }
+            });
+
+            const currentBal = initialBal + totalPnl;
+            document.getElementById('currentBalance').innerText = `$${currentBal.toFixed(2)}`;
+            
+            const totalTrades = allTradesData.length;
+            document.getElementById('winRate').innerText = totalTrades ? `${((wins / totalTrades) * 100).toFixed(0)}%` : '0%';
+            
+            const pf = totalGrossLoss === 0 ? totalGrossProfit : totalGrossProfit / totalGrossLoss;
+            document.getElementById('profitFactor').innerText = pf.toFixed(2);
+            
+            const expectancy = totalTrades ? totalPnl / totalTrades : 0;
+            document.getElementById('expectancy').innerText = `${expectancy >= 0 ? '' : '-'}$${Math.abs(expectancy).toFixed(2)}`;
+        }
+
+        function checkDailyDrawdown() {
+            const maxLoss = parseFloat(document.getElementById('maxDailyLoss').value) || 0;
+            const todayStr = new Date().toISOString().split('T')[0];
+            let todayLoss = 0;
+
+            allTradesData.forEach(t => {
+                if (t.dateStr === todayStr && t.pnl < 0) {
+                    todayLoss += Math.abs(t.pnl);
+                }
+            });
+
+            const banner = document.getElementById('drawdownBanner');
+            if (maxLoss > 0 && todayLoss >= maxLoss) {
+                banner.classList.replace('hidden', 'block');
+            } else {
+                banner.classList.replace('block', 'hidden');
+            }
+        }
+
+        // 1. RENDER EQUITY CURVE (กราฟเส้นหน้าแรกตามสั่ง)
+        function renderEquityChart() {
+            const ctx = document.getElementById('equityChart').getContext('2d');
+            const initialBal = parseFloat(document.getElementById('initialBalanceInput').value) || 0;
+            
+            let cumulativeBalance = initialBal;
+            const chartLabels = ['Start'];
+            const dataPoints = [initialBal];
+
+            allTradesData.forEach((t, index) => {
+                cumulativeBalance += parseFloat(t.pnl) || 0;
+                chartLabels.push(`ไม้ที่ ${index + 1}`);
+                dataPoints.push(cumulativeBalance);
+            });
+
+            if (chartsInstance.equity) { chartsInstance.equity.destroy(); }
+
+            chartsInstance.equity = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'พอร์ตสะสม (Equity, $)',
+                        data: dataPoints,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                        fill: true,
+                        tension: 0.2,
+                        borderWidth: 3,
+                        pointRadius: dataPoints.length > 20 ? 1 : 4,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+                        y: { grid: { color: '#374151' }, ticks: { color: '#9ca3af', callback: v => '$' + v } }
+                    }
+                }
+            });
+        }
+
+        // 2. RENDER PERFORMANCE BY SESSION (อัปเดตระบบคำนวณตามต้องการ)
+        function renderSessionAnalytics() {
+            const sessionsMap = {
+                'New York AM': { pnl: 0, win: 0, total: 0 },
+                'New York PM': { pnl: 0, win: 0, total: 0 },
+                'London': { pnl: 0, win: 0, total: 0 },
+                'Asian': { pnl: 0, win: 0, total: 0 }
+            };
+
+            allTradesData.forEach(t => {
+                const s = t.session;
+                if (sessionsMap[s] !== undefined) {
+                    sessionsMap[s].total++;
+                    sessionsMap[s].pnl += t.pnl;
+                    if (t.pnl > 0) sessionsMap[s].win++;
+                }
+            });
+
+            const container = document.getElementById('sessionListContainer');
+            container.innerHTML = '';
+
+            Object.keys(sessionsMap).forEach(key => {
+                const data = sessionsMap[key];
+                const wr = data.total ? ((data.win / data.total) * 100).toFixed(0) : 0;
+                const pnlColor = data.pnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+                
+                container.innerHTML += `
+                    <div class="bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-bold text-gray-200">${key}</span>
+                            <span class="text-sm font-bold ${pnlColor}">${data.pnl >= 0 ? '+' : ''}$${data.pnl.toFixed(1)}</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-400 font-mono">
+                            <span>เทรด: ${data.total} ไม้</span>
+                            <span>Win Rate: <b class="text-gray-200">${wr}%</b></span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 3. RENDER MISTAKE ANALYTICS (Doughnut Chart)
+        function renderMistakeChart() {
+            const ctx = document.getElementById('mistakeChart').getContext('2d');
+            const counts = {};
+            
+            allTradesData.forEach(t => {
+                if (t.pnl <= 0) {
+                    counts[t.mistake] = (counts[t.mistake] || 0) + 1;
+                }
+            });
+
+            const labels = Object.keys(counts);
+            const data = Object.values(counts);
+
+            if (chartsInstance.mistake) { chartsInstance.mistake.destroy(); }
+            if(!labels.length) {
+                ctx.clearRect(0,0,200,200);
+                return;
+            }
+
+            chartsInstance.mistake = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#a855f7', '#6366f1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10 } } } }
+                }
+            });
+        }
+
+        // 4. CHECKLIST CRITERIA REFINER
+        function renderChecklistStats() {
+            const checklistMap = {
+                crt: { name: '1. ทรง CRT มาครบ', win: 0, total: 0 },
+                lq: { name: '2. มีการกวาดล้าง LQ', win: 0, total: 0 },
+                disp: { name: '3. มี Displacement', win: 0, total: 0 },
+                conf: { name: '4. ตรงโซน POI/Session', win: 0, total: 0 }
+            };
+
+            allTradesData.forEach(t => {
+                if(t.checklist) {
+                    Object.keys(checklistMap).forEach(k => {
+                        if (t.checklist[k]) {
+                            checklistMap[k].total++;
+                            if (t.pnl > 0) checklistMap[k].win++;
+                        }
+                    });
+                }
+            });
+
+            const container = document.getElementById('checklistStatsContainer');
+            container.innerHTML = '';
+
+            Object.keys(checklistMap).forEach(k => {
+                const item = checklistMap[k];
+                const rate = item.total ? ((item.win / item.total) * 100).toFixed(0) : 0;
+                container.innerHTML += `
+                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-gray-300 font-medium">${item.name}</span>
+                            <span class="text-blue-400 font-bold font-mono">${rate}% Win</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full" style="width: ${rate}%"></div>
+                        </div>
+                        <span class="text-[10px] text-gray-500 font-mono mt-1 block">พบตัวแปรนี้ ${item.total} ไม้</span>
+                    </div>
+                `;
+            });
+        }
+
+        // 5. HISTORY TABLE ENGINE WITH FILTERS
+        function renderHistoryTable() {
+            const tbody = document.getElementById('historyTableBody');
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+            const resultF = document.getElementById('resultFilter').value;
+            const setupF = document.getElementById('setupFilter').value;
+
+            tbody.innerHTML = '';
+
+            // แสดงย้อนหลังพิจารณาจากล่าสุดขึ้นก่อน
+            const reversedData = [...allTradesData].reverse();
+
+            reversedData.forEach(t => {
+                const matchSearch = t.asset.toLowerCase().includes(search) || (t.notes && t.notes.toLowerCase().includes(search));
+                const matchResult = resultF === 'ALL' || (resultF === 'WIN' && t.pnl > 0) || (resultF === 'LOSS' && t.pnl <= 0);
+                const matchSetup = setupF === 'ALL' || t.setupType === setupF;
+
+                if (matchSearch && matchResult && matchSetup) {
+                    const pnlColor = t.pnl >= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold';
+                    const dirBg = t.direction === 'BUY' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20';
+                    const setupBadge = t.setupType === 'CRT A+ Setup' ? 'text-yellow-400 font-bold' : 'text-gray-400';
+                    
+                    let chkCount = 0;
+                    if(t.checklist) { Object.values(t.checklist).forEach(v => { if(v) chkCount++; }); }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-800/40 transition">
+                            <td class="p-4 font-mono text-xs text-gray-400">${t.dateStr || ''}</td>
+                            <td class="p-4 font-bold text-gray-200">${t.asset}</td>
+                            <td class="p-4">
+                                <span class="px-2 py-0.5 rounded text-xs border ${dirBg}">${t.direction}</span>
+                                <span class="text-xs block mt-1 ${setupBadge}">${t.setupType}</span>
+                            </td>
+                            <td class="p-4 text-xs font-medium text-gray-300">${t.session}</td>
+                            <td class="p-4 text-center">
+                                <span class="text-xs font-bold font-mono bg-gray-900 border border-gray-700 px-2 py-1 rounded-md text-blue-400">${chkCount}/4</span>
+                            </td>
+                            <td class="p-4">
+                                <span class="text-xs bg-gray-900/60 px-2 py-1 rounded border border-gray-700 text-gray-300">${t.mistake}</span>
+                                ${t.notes ? `<p class="text-xs text-gray-400 mt-1 max-w-xs truncate">${t.notes}</p>` : ''}
+                            </td>
+                            <td class="p-4 text-right font-mono ${pnlColor}">${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}</td>
+                            <td class="p-4 text-center">
+                                <button onclick="deleteTrade('${t.id}')" class="text-gray-500 hover:text-red-400 p-1 transition"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+
+        // 6. MONTH CONTROL CALENDAR SYSTEM
+        function changeMonth(offset) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const monthsName = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            
+            document.getElementById('calendarMonthYear').innerText = `${monthsName[month]} ${year}`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('calendarDaysGrid');
+            grid.innerHTML = '';
+
+            // ช่องว่างของปฏิทินต้นเดือน
+            for (let i = 0; i < firstDayIndex; i++) {
+                grid.innerHTML += `<div class="p-2"></div>`;
+            }
+
+            // คำนวณผลรายวัน
+            for (let day = 1; day <= totalDays; day++) {
+                const currentStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                let dayPnl = 0;
+                let dayTraded = false;
+
+                allTradesData.forEach(t => {
+                    if(t.dateStr === currentStr) {
+                        dayPnl += t.pnl;
+                        dayTraded = true;
+                    }
+                });
+
+                let bgClass = "bg-gray-900/40 text-gray-500 border border-transparent";
+                if(dayTraded) {
+                    bgClass = dayPnl >= 0 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold" : "bg-red-500/20 text-red-400 border border-red-500/30 font-bold";
+                }
+
+                grid.innerHTML += `
+                    <div class="p-1.5 rounded text-center text-xs ${bgClass} shadow-sm" title="${dayTraded ? 'PnL วันนี้: $' + dayPnl.toFixed(2) : 'ไม่มีการบันทึก'}">
+                        ${day}
+                    </div>
+                `;
+            }
+        }
+
+        // 7. PLAYBOOK GALLERY LOADER
+        function renderPlaybookGallery() {
+            const container = document.getElementById('playbookGallery');
+            container.innerHTML = '';
+            
+            const playbookItems = allTradesData.filter(t => t.pnl > 0 && t.imageUrl);
+
+            if(!playbookItems.length) {
+                container.innerHTML = `<div class="col-span-full text-center text-sm text-gray-500 py-10">ยังไม่มีภาพไม้เทรดชนะเปิดโชว์ (กรอกลิงก์รูปตอนเซฟไม้ชนะระบบจะบันทึกมาเก็บไว้ที่นี่)</div>`;
+                return;
+            }
+
+            playbookItems.forEach(t => {
+                container.innerHTML += `
+                    <div class="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden shadow-lg flex flex-col justify-between">
+                        <img src="${t.imageUrl}" alt="Playbook Screen" class="w-full h-44 object-cover border-b border-gray-800 hover:scale-105 transition duration-300 cursor-pointer" onclick="window.open('${t.imageUrl}', '_blank')">
+                        <div class="p-4 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold font-mono text-yellow-400 bg-yellow-400/5 px-2 py-0.5 rounded border border-yellow-400/10">${t.setupType}</span>
+                                <span class="text-sm font-bold text-emerald-400">+$${t.pnl.toFixed(1)}</span>
+                            </div>
+                            <p class="text-xs text-gray-400 font-mono"><i class="far fa-clock mr-1"></i>${t.dateStr} | ${t.session}</p>
+                            ${t.notes ? `<p class="text-xs text-gray-300 line-clamp-2 bg-gray-950 p-2 rounded mt-1 border border-gray-800">${t.notes}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Position Lot Size Engine
+        function calculateLot() {
+            const riskPct = parseFloat(document.getElementById('calcRisk').value) || 0;
+            const slPoints = parseFloat(document.getElementById('calcSl').value) || 0;
+            const initialBal = parseFloat(document.getElementById('initialBalanceInput').value) || 150;
+            
+            if(riskPct <= 0 || slPoints <= 0) return;
+            
+            // สูตรทองคำ: Lot = (Balance * Risk%) / (SL Points * 0.1) -> คิดจากมูลค่าจุดละ 0.1$ ต่อ 1 Lot
+            const riskMoney = initialBal * (riskPct / 100);
+            const lot = riskMoney / (slPoints * 0.1);
+            
+            document.getElementById('calcResultLot').innerText = `${Math.max(0.01, lot).toFixed(2)} Lot`;
+        }
+
+        // รันคำนวณ Lot ตอนเริ่มเบื้องต้น
+        calculateLot();
+    </script>
+</body>
+</html>
