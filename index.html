@@ -641,46 +641,71 @@
             renderCalendar();
         };
 
-        function renderCalendar() {
-            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-            const today = new Date(); const year = currentCalYear; const month = currentCalMonth;
-            document.getElementById('calendar-month').innerText = `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month]} ${year}`;
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+    const today = new Date(); const year = currentCalYear; const month = currentCalMonth;
+    document.getElementById('calendar-month').innerText = `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month]} ${year}`;
 
-            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
-            for(let i = 0; i < firstDay; i++) { const empty = document.createElement('div'); empty.className = "min-h-[5rem] md:min-h-[7rem] rounded border border-transparent"; grid.appendChild(empty); }
+    const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for(let i = 0; i < firstDay; i++) { const empty = document.createElement('div'); empty.className = "min-h-[5rem] md:min-h-[7rem] rounded border border-transparent"; grid.appendChild(empty); }
 
-            for(let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayTrades = tradesData.filter(t => t.date === dateStr);
-                let dayPnl = 0; let hasTrades = false;
-                
-                if(dayTrades.length > 0) { hasTrades = true; dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0); }
-                const daySquare = document.createElement('div');
-                let colorClass = "bg-slate-900 border-slate-800 text-slate-600"; 
+    for(let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayTrades = tradesData.filter(t => t.date === dateStr);
+        let dayPnl = 0; let hasTrades = false;
+        
+        if(dayTrades.length > 0) { hasTrades = true; dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0); }
+        const daySquare = document.createElement('div');
+        let colorClass = "bg-slate-900 border-slate-800 text-slate-600"; 
 
-                if(hasTrades) {
-                    const onlyMissed = dayTrades.every(t => t.result === 'Missed');
-                    if(onlyMissed) colorClass = "bg-amber-500/10 border-amber-500/40 text-amber-400";
-                    else if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
-                    else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
-                    else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
-                }
-                if(day === today.getDate() && month === today.getMonth() && year === today.getFullYear() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
-
-                daySquare.className = `min-h-[5rem] md:min-h-[7rem] p-2 flex flex-col items-start justify-start rounded border transition-colors cursor-default ${colorClass}`;
-                let innerHTML = `<span class="text-sm md:text-base font-semibold w-full text-left mb-1 ${day === today.getDate() && month === today.getMonth() && year === today.getFullYear() ? 'underline decoration-2 underline-offset-2' : ''}">${day}</span>`;
-                
-                if(hasTrades) {
-                    const wins = dayTrades.filter(t => t.result === 'Win').length; const losses = dayTrades.filter(t => t.result === 'Lose').length;
-                    const wr = (wins + losses) > 0 ? Math.round((wins/(wins + losses))*100) : 0;
-                    if(dayTrades.every(t => t.result === 'Missed')) { innerHTML += `<div class="mt-auto w-full text-center"><div class="text-[10px] md:text-xs font-bold opacity-80">${dayTrades.length} Missed</div></div>`; } 
-                    else { innerHTML += `<div class="mt-auto w-full text-center space-y-1"><div class="text-xs md:text-sm font-bold tracking-tight">${dayTrades.length} Trades</div><div class="text-[10px] md:text-xs opacity-90 font-medium">WR: ${wr}%</div></div>`; }
-                    daySquare.title = `Trades: ${dayTrades.length} | PnL: $${dayPnl.toFixed(2)}`;
-                }
-                daySquare.innerHTML = innerHTML; grid.appendChild(daySquare);
-            }
-            lucide.createIcons();
+        if(hasTrades) {
+            const onlyMissed = dayTrades.every(t => t.result === 'Missed');
+            if(onlyMissed) colorClass = "bg-amber-500/10 border-amber-500/40 text-amber-400";
+            else if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
+            else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
+            else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
         }
+        if(day === today.getDate() && month === today.getMonth() && year === today.getFullYear() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
+
+        daySquare.className = `min-h-[5rem] md:min-h-[7rem] p-2 flex flex-col items-start justify-between rounded border transition-colors cursor-default ${colorClass}`;
+        let innerHTML = `<span class="text-sm md:text-base font-semibold w-full text-left ${day === today.getDate() && month === today.getMonth() && year === today.getFullYear() ? 'underline decoration-2 underline-offset-2' : ''}">${day}</span>`;
+        
+        if(hasTrades) {
+            // นับแยกประเภทจำนวนไม้ (Win / Lose / Missed)
+            const wins = dayTrades.filter(t => t.result === 'Win').length; 
+            const losses = dayTrades.filter(t => t.result === 'Lose').length;
+            const missed = dayTrades.filter(t => t.result === 'Missed').length;
+            
+            // กำหนดสีของ Net PnL แสดงผลให้สัมพันธ์กับกำไรขาดทุนรายวัน
+            const pnlColorClass = dayPnl > 0 ? 'text-emerald-400' : (dayPnl < 0 ? 'text-red-400' : 'text-slate-400');
+            const pnlSign = dayPnl > 0 ? '+' : '';
+
+            innerHTML += `
+                <div class="w-full mt-auto space-y-0.5 text-left font-medium">
+                    <div class="text-[10px] md:text-xs text-slate-400 flex justify-between">
+                        <span>W/L/M:</span>
+                        <span class="tracking-tighter">
+                            <span class="text-emerald-400 font-bold">${wins}</span>/` +
+                            `<span class="text-red-400 font-bold">${losses}</span>/` +
+                            `<span class="text-amber-400 font-bold">${missed}</span>
+                        </span>
+                    </div>
+                    <div class="text-[10px] md:text-xs border-t border-slate-800/60 pt-0.5 flex justify-between items-center">
+                        <span class="text-slate-500 text-[9px] md:text-[10px]">Net:</span>
+                        <span class="${pnlColorClass} font-bold">${pnlSign}$${dayPnl.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+            daySquare.title = `Trades: ${dayTrades.length} | W:${wins} L:${losses} M:${missed} | PnL: $${dayPnl.toFixed(2)}`;
+        } else {
+            // เติมพื้นที่ว่างเพื่อให้โครงสร้าง Flex หด/ขยายจัดวางสมดุล
+            innerHTML += `<div class="mt-auto w-full text-right text-[9px] text-slate-700/60 italic">No trade</div>`;
+        }
+        
+        daySquare.innerHTML = innerHTML; grid.appendChild(daySquare);
+    }
+    lucide.createIcons();
+}
 
         function updateChart() {
             const ctx = document.getElementById('pnlChart').getContext('2d');
