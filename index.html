@@ -248,6 +248,20 @@
         </div>
     </div>
 
+    <div id="imageModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4" onclick="closeImageModalOutside(event)">
+        <div class="relative bg-slate-900 border border-slate-800 rounded-xl max-w-4xl w-full overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between p-3 border-b border-slate-800 bg-slate-900/50">
+                <h3 id="modalTitle" class="text-sm font-medium text-slate-200 truncate">Trade Setup Preview</h3>
+                <button onclick="closeImageModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-2 bg-slate-955 flex items-center justify-center min-h-[200px] max-h-[75vh]">
+                <img id="modalImage" src="" alt="Trading Chart" class="max-w-full max-h-[70vh] object-contain rounded-lg shadow-md">
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
@@ -291,6 +305,35 @@
         
         lucide.createIcons();
         document.getElementById('form-date').valueAsDate = new Date();
+
+        // ฟังก์ชันเปิด Image Modal (Popup) แบบครอบคลุมทั่วทั้งเว็บ
+        window.openImageModal = function(imageUrl, title = "Trade Setup Preview") {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            if (!imageUrl) return;
+            
+            modalImg.src = imageUrl;
+            modalTitle.innerText = title;
+            modal.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.closeImageModal = function() {
+            document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('modalImage').src = "";
+        };
+
+        window.closeImageModalOutside = function(e) {
+            if (e.target === document.getElementById('imageModal')) {
+                closeImageModal();
+            }
+        };
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeImageModal();
+        });
 
         window.switchTab = function(tabName) {
             ['dashboard', 'playbook', 'new', 'history'].forEach(t => {
@@ -371,8 +414,8 @@
                 }
 
                 card.innerHTML = `
-                    <div class="relative h-48 overflow-hidden bg-slate-950">
-                        <img src="${imgSrc}" class="w-full h-full object-cover opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100 cursor-pointer" onclick="window.open('${imgSrc}', '_blank')">
+                    <div class="relative h-48 overflow-hidden bg-slate-955">
+                        <img src="${imgSrc}" class="w-full h-full object-cover opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100 cursor-pointer" onclick="openImageModal('${imgSrc}', '${trade.date} | ${trade.setup || 'CRT'} (${trade.result})')">
                         <div class="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md backdrop-blur-sm">+$${trade.pnl}</div>
                         <div class="absolute top-3 left-3 bg-slate-900/80 border border-slate-600 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm">${trade.type}</div>
                     </div>
@@ -433,7 +476,7 @@
                     cardHTML += `<div class="bg-slate-900/50 p-4 rounded-lg space-y-3 text-sm mt-4 border border-slate-700/50">`; 
                     if(trade.checklist && trade.checklist.length > 0) {
                         cardHTML += `<div><span class="text-slate-400 font-semibold block mb-1">Conditions Met:</span> <div class="flex flex-wrap gap-2">`;
-                        trade.checklist.forEach(item => { cardHTML += `<span class="bg-blue-900/30 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded text-xs">${item}</span>`; });
+                        trade.checklist.forEach(item => { cardHTML += `<span class="bg-blue-900/30 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded text-[10px]">${item}</span>`; });
                         cardHTML += `</div></div>`;
                     }
                     if(trade.comment) cardHTML += `<div><span class="text-slate-400 font-semibold block mb-1">Notes:</span> <span class="text-slate-300 leading-relaxed">${trade.comment}</span></div>`; 
@@ -446,10 +489,10 @@
 
                 if (images.length > 0) {
                     cardHTML += `<div class="w-full md:w-64 bg-slate-900 rounded-lg overflow-hidden border border-slate-700 flex-shrink-0 flex flex-col">`;
-                    cardHTML += `<img src="${images[0]}" class="w-full h-40 object-cover cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${images[0]}', '_blank')" />`;
+                    cardHTML += `<img src="${images[0]}" class="w-full h-40 object-cover cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageModal('${images[0]}', '${trade.date} | ${trade.setup || 'CRT'} Setup')" />`;
                     if(images.length > 1) {
                         cardHTML += `<div class="flex gap-1.5 p-2 bg-slate-800 overflow-x-auto border-t border-slate-700 custom-scrollbar">`;
-                        for(let i=1; i<images.length; i++) { cardHTML += `<img src="${images[i]}" class="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 border border-slate-600 flex-shrink-0" onclick="window.open('${images[i]}', '_blank')" />`; }
+                        for(let i=1; i<images.length; i++) { cardHTML += `<img src="${images[i]}" class="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 border border-slate-600 flex-shrink-0" onclick="openImageModal('${images[i]}', '${trade.date} | ${trade.setup || 'CRT'} Setup (${i+1})')" />`; }
                         cardHTML += `</div>`;
                     }
                     cardHTML += `</div>`;
@@ -491,7 +534,7 @@
                 currentImageUrls.forEach((url, index) => {
                     container.innerHTML += `
                         <div class="relative w-14 h-14 rounded-md overflow-hidden border border-slate-600 group">
-                            <img src="${url}" class="w-full h-full object-cover" />
+                            <img src="${url}" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal('${url}', 'Preview Attached Image ${index+1}')" />
                             <button type="button" onclick="removeImage(${index})" class="absolute top-0 right-0 bg-red-600/90 text-white p-1 rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="x" class="w-3 h-3"></i></button>
                         </div>`;
                 });
@@ -557,7 +600,6 @@
             const wins = tradesData.filter(t => t.result === 'Win').length;
             const losses = tradesData.filter(t => t.result === 'Lose').length;
             const bes = tradesData.filter(t => t.result === 'BE').length;
-            const missed = tradesData.filter(t => t.result === 'Missed').length;
             
             const effectiveTrades = wins + losses;
             const winRate = effectiveTrades > 0 ? ((wins / effectiveTrades) * 100).toFixed(1) : 0;
@@ -641,71 +683,68 @@
             renderCalendar();
         };
 
-function renderCalendar() {
-    const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
-    const today = new Date(); const year = currentCalYear; const month = currentCalMonth;
-    document.getElementById('calendar-month').innerText = `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month]} ${year}`;
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            const today = new Date(); const year = currentCalYear; const month = currentCalMonth;
+            document.getElementById('calendar-month').innerText = `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month]} ${year}`;
 
-    const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
-    for(let i = 0; i < firstDay; i++) { const empty = document.createElement('div'); empty.className = "min-h-[5rem] md:min-h-[7rem] rounded border border-transparent"; grid.appendChild(empty); }
+            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for(let i = 0; i < firstDay; i++) { const empty = document.createElement('div'); empty.className = "min-h-[5rem] md:min-h-[7rem] rounded border border-transparent"; grid.appendChild(empty); }
 
-    for(let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayTrades = tradesData.filter(t => t.date === dateStr);
-        let dayPnl = 0; let hasTrades = false;
-        
-        if(dayTrades.length > 0) { hasTrades = true; dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0); }
-        const daySquare = document.createElement('div');
-        let colorClass = "bg-slate-900 border-slate-800 text-slate-600"; 
+            for(let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayTrades = tradesData.filter(t => t.date === dateStr);
+                let dayPnl = 0; let hasTrades = false;
+                
+                if(dayTrades.length > 0) { hasTrades = true; dayPnl = dayTrades.reduce((sum, t) => sum + Number(t.pnl || 0), 0); }
+                const daySquare = document.createElement('div');
+                let colorClass = "bg-slate-900 border-slate-800 text-slate-600"; 
 
-        if(hasTrades) {
-            const onlyMissed = dayTrades.every(t => t.result === 'Missed');
-            if(onlyMissed) colorClass = "bg-amber-500/10 border-amber-500/40 text-amber-400";
-            else if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
-            else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
-            else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
+                if(hasTrades) {
+                    const onlyMissed = dayTrades.every(t => t.result === 'Missed');
+                    if(onlyMissed) colorClass = "bg-amber-500/10 border-amber-500/40 text-amber-400";
+                    else if(dayPnl > 0) colorClass = "bg-emerald-500/20 border-emerald-500/50 text-emerald-400";
+                    else if(dayPnl < 0) colorClass = "bg-red-500/20 border-red-500/50 text-red-400";
+                    else colorClass = "bg-slate-600/40 border-slate-500/50 text-slate-300"; 
+                }
+                if(day === today.getDate() && month === today.getMonth() && year === today.getFullYear() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
+
+                daySquare.className = `min-h-[5rem] md:min-h-[7rem] p-2 flex flex-col items-start justify-between rounded border transition-colors cursor-default ${colorClass}`;
+                let innerHTML = `<span class="text-sm md:text-base font-semibold w-full text-left ${day === today.getDate() && month === today.getMonth() && year === today.getFullYear() ? 'underline decoration-2 underline-offset-2' : ''}">${day}</span>`;
+                
+                if(hasTrades) {
+                    const wins = dayTrades.filter(t => t.result === 'Win').length; 
+                    const losses = dayTrades.filter(t => t.result === 'Lose').length;
+                    const missed = dayTrades.filter(t => t.result === 'Missed').length;
+                    
+                    const pnlColorClass = dayPnl > 0 ? 'text-emerald-400' : (dayPnl < 0 ? 'text-red-400' : 'text-slate-400');
+                    const pnlSign = dayPnl > 0 ? '+' : '';
+
+                    innerHTML += `
+                        <div class="w-full mt-auto space-y-0.5 text-left font-medium">
+                            <div class="text-[10px] md:text-xs text-slate-400 flex justify-between">
+                                <span>W/L/M:</span>
+                                <span class="tracking-tighter">
+                                    <span class="text-emerald-400 font-bold">${wins}</span>/` +
+                                    `<span class="text-red-400 font-bold">${losses}</span>/` +
+                                    `<span class="text-amber-400 font-bold">${missed}</span>
+                                </span>
+                            </div>
+                            <div class="text-[10px] md:text-xs border-t border-slate-800/60 pt-0.5 flex justify-between items-center">
+                                <span class="text-slate-500 text-[9px] md:text-[10px]">Net:</span>
+                                <span class="${pnlColorClass} font-bold">${pnlSign}$${dayPnl.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
+                    daySquare.title = `Trades: ${dayTrades.length} | W:${wins} L:${losses} M:${missed} | PnL: $${dayPnl.toFixed(2)}`;
+                } else {
+                    innerHTML += `<div class="mt-auto w-full text-right text-[9px] text-slate-700/60 italic">No trade</div>`;
+                }
+                
+                daySquare.innerHTML = innerHTML; grid.appendChild(daySquare);
+            }
+            lucide.createIcons();
         }
-        if(day === today.getDate() && month === today.getMonth() && year === today.getFullYear() && !hasTrades) colorClass = "bg-slate-800 border-blue-500 text-blue-400";
-
-        daySquare.className = `min-h-[5rem] md:min-h-[7rem] p-2 flex flex-col items-start justify-between rounded border transition-colors cursor-default ${colorClass}`;
-        let innerHTML = `<span class="text-sm md:text-base font-semibold w-full text-left ${day === today.getDate() && month === today.getMonth() && year === today.getFullYear() ? 'underline decoration-2 underline-offset-2' : ''}">${day}</span>`;
-        
-        if(hasTrades) {
-            // นับแยกประเภทจำนวนไม้ (Win / Lose / Missed)
-            const wins = dayTrades.filter(t => t.result === 'Win').length; 
-            const losses = dayTrades.filter(t => t.result === 'Lose').length;
-            const missed = dayTrades.filter(t => t.result === 'Missed').length;
-            
-            // กำหนดสีของ Net PnL แสดงผลให้สัมพันธ์กับกำไรขาดทุนรายวัน
-            const pnlColorClass = dayPnl > 0 ? 'text-emerald-400' : (dayPnl < 0 ? 'text-red-400' : 'text-slate-400');
-            const pnlSign = dayPnl > 0 ? '+' : '';
-
-            innerHTML += `
-                <div class="w-full mt-auto space-y-0.5 text-left font-medium">
-                    <div class="text-[10px] md:text-xs text-slate-400 flex justify-between">
-                        <span>W/L/M:</span>
-                        <span class="tracking-tighter">
-                            <span class="text-emerald-400 font-bold">${wins}</span>/` +
-                            `<span class="text-red-400 font-bold">${losses}</span>/` +
-                            `<span class="text-amber-400 font-bold">${missed}</span>
-                        </span>
-                    </div>
-                    <div class="text-[10px] md:text-xs border-t border-slate-800/60 pt-0.5 flex justify-between items-center">
-                        <span class="text-slate-500 text-[9px] md:text-[10px]">Net:</span>
-                        <span class="${pnlColorClass} font-bold">${pnlSign}$${dayPnl.toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
-            daySquare.title = `Trades: ${dayTrades.length} | W:${wins} L:${losses} M:${missed} | PnL: $${dayPnl.toFixed(2)}`;
-        } else {
-            // เติมพื้นที่ว่างเพื่อให้โครงสร้าง Flex หด/ขยายจัดวางสมดุล
-            innerHTML += `<div class="mt-auto w-full text-right text-[9px] text-slate-700/60 italic">No trade</div>`;
-        }
-        
-        daySquare.innerHTML = innerHTML; grid.appendChild(daySquare);
-    }
-    lucide.createIcons();
-}
 
         function updateChart() {
             const ctx = document.getElementById('pnlChart').getContext('2d');
